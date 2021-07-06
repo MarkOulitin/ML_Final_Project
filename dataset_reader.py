@@ -44,7 +44,8 @@ def read_data(filename):
     # print(f"{filename} => Finish preprocessing")
     # return X_train, X_test, y_train, y_test
     classes_count = df[df.columns[-1]].nunique()
-    return X, y, classes_count
+    input_dim = X.shape[1]
+    return X, y, classes_count, input_dim
 
 if __name__ == '__main__':
     # for filename in os.listdir(dataset_dir):

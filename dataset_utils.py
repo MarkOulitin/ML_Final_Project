@@ -3,9 +3,9 @@ import os, sys, pickle
 import numpy as np
 from scipy import linalg
 
-FLAGS = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_bool('aug_trans', False, "")
-tf.app.flags.DEFINE_bool('aug_flip', False, "")
+FLAGS = tf.compat.v1.flags.FLAGS
+tf.compat.v1.flags.DEFINE_bool('aug_trans', False, "")
+tf.compat.v1.flags.DEFINE_bool('aug_flip', False, "")
 
 def unpickle(file):
     fp = open(file, 'rb')
@@ -56,14 +56,14 @@ def convert_images_and_labels(images, labels, filepath):
 
 
 def read(filename_queue):
-    reader = tf.TFRecordReader()
+    reader = tf.compat.v1.TFRecordReader()
     _, serialized_example = reader.read(filename_queue)
-    features = tf.parse_single_example(
+    features = tf.compat.v1.parse_single_example(
         serialized_example,
         # Defaults are not specified since both keys are required.
         features={
-            'image': tf.FixedLenFeature([3072], tf.float32),
-            'label': tf.FixedLenFeature([], tf.int64),
+            'image': tf.compat.v1.FixedLenFeature([3072], tf.float32),
+            'label': tf.compat.v1.FixedLenFeature([], tf.int64),
         })
 
     # Convert label from a scalar uint8 tensor to an int32 scalar.
@@ -84,14 +84,14 @@ def generate_batch(
     num_preprocess_threads = 1
 
     if shuffle:
-        ret = tf.train.shuffle_batch(
+        ret = tf.compat.v1.train.shuffle_batch(
             example,
             batch_size=batch_size,
             num_threads=num_preprocess_threads,
             capacity=min_queue_examples + 3 * batch_size,
             min_after_dequeue=min_queue_examples)
     else:
-        ret = tf.train.batch(
+        ret = tf.compat.v1.train.batch(
             example,
             batch_size=batch_size,
             num_threads=num_preprocess_threads,

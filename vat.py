@@ -5,27 +5,27 @@ import sys, os
 import layers as L
 import cnn
 
-FLAGS = tf.app.flags.FLAGS
+FLAGS = tf.compat.v1.flags.FLAGS
 
-tf.app.flags.DEFINE_float('epsilon', 8.0, "norm length for (virtual) adversarial training ")
-tf.app.flags.DEFINE_integer('num_power_iterations', 1, "the number of power iterations")
-tf.app.flags.DEFINE_float('xi', 1e-6, "small constant for finite difference")
+tf.compat.v1.flags.DEFINE_float('epsilon', 8.0, "norm length for (virtual) adversarial training ")
+tf.compat.v1.flags.DEFINE_integer('num_power_iterations', 1, "the number of power iterations")
+tf.compat.v1.flags.DEFINE_float('xi', 1e-6, "small constant for finite difference")
 
 
-def logit(x, is_training=True, update_batch_stats=True, stochastic=True, seed=1234):
-    return cnn.logit(x, is_training=is_training,
+def logit(x, classes_count, is_training=True, update_batch_stats=True, stochastic=True, seed=1234):
+    return cnn.logit(x, classes_count, is_training=is_training,
                      update_batch_stats=update_batch_stats,
                      stochastic=stochastic,
                      seed=seed)
 
 
-def forward(x, is_training=True, update_batch_stats=True, seed=1234):
+def forward(x, classes_count, is_training=True, update_batch_stats=True, seed=1234):
     if is_training:
-        return logit(x, is_training=True,
+        return logit(x, classes_count, is_training=True,
                      update_batch_stats=update_batch_stats,
                      stochastic=True, seed=seed)
     else:
-        return logit(x, is_training=False,
+        return logit(x, classes_count, is_training=False,
                      update_batch_stats=update_batch_stats,
                      stochastic=False, seed=seed)
 
@@ -37,12 +37,12 @@ def get_normalized_vector(d):
 
 
 def generate_virtual_adversarial_perturbation(x, logit, is_training=True):
-    d = tf.random_normal(shape=tf.shape(x))
+    d = tf.compat.v1.random_normal(shape=tf.shape(x))
 
     for _ in range(FLAGS.num_power_iterations):
         d = FLAGS.xi * get_normalized_vector(d)
         logit_p = logit
-        logit_m = forward(x + d, update_batch_stats=False, is_training=is_training)
+        logit_m = forward(x + d, classes_count, update_batch_stats=False, is_training=is_training)
         dist = L.kl_divergence_with_logit(logit_p, logit_m)
         grad = tf.gradients(dist, [d], aggregation_method=2)[0]
         d = tf.stop_gradient(grad)
@@ -54,7 +54,7 @@ def virtual_adversarial_loss(x, logit, is_training=True, name="vat_loss"):
     r_vadv = generate_virtual_adversarial_perturbation(x, logit, is_training=is_training)
     logit = tf.stop_gradient(logit)
     logit_p = logit
-    logit_m = forward(x + r_vadv, update_batch_stats=False, is_training=is_training)
+    logit_m = forward(x + r_vadv, classes_count, update_batch_stats=False, is_training=is_training)
     loss = L.kl_divergence_with_logit(logit_p, logit_m)
     return tf.identity(loss, name=name)
 
@@ -67,6 +67,6 @@ def generate_adversarial_perturbation(x, loss):
 
 def adversarial_loss(x, y, loss, is_training=True, name="at_loss"):
     r_adv = generate_adversarial_perturbation(x, loss)
-    logit = forward(x + r_adv, is_training=is_training, update_batch_stats=False)
+    logit = forward(x + r_adv, classes_count, is_training=is_training, update_batch_stats=False)
     loss = L.ce_loss(logit, y)
     return loss

@@ -6,42 +6,38 @@ import tensorflow as tf
 import layers as L
 import vat
 
-FLAGS = tf.app.flags.FLAGS
+from sklearn.model_selection import train_test_split
+from dataset_reader import read_data
 
-tf.app.flags.DEFINE_string('device', '/gpu:0', "device")
+tf = tf.compat.v1
 
-tf.app.flags.DEFINE_string('dataset', 'cifar10', "{cifar10, svhn}")
+FLAGS = tf.flags.FLAGS
 
-tf.app.flags.DEFINE_string('log_dir', "", "log_dir")
-tf.app.flags.DEFINE_integer('seed', 1, "initial random seed")
-tf.app.flags.DEFINE_bool('validation', False, "")
+tf.flags.DEFINE_string('device', '/gpu:0', "device")
 
-tf.app.flags.DEFINE_integer('batch_size', 32, "the number of examples in a batch")
-tf.app.flags.DEFINE_integer('ul_batch_size', 128, "the number of unlabeled examples in a batch")
-tf.app.flags.DEFINE_integer('eval_batch_size', 100, "the number of eval examples in a batch")
-tf.app.flags.DEFINE_integer('eval_freq', 5, "")
-tf.app.flags.DEFINE_integer('num_epochs', 120, "the number of epochs for training")
-tf.app.flags.DEFINE_integer('epoch_decay_start', 80, "epoch of starting learning rate decay")
-tf.app.flags.DEFINE_integer('num_iter_per_epoch', 400, "the number of updates per epoch")
-tf.app.flags.DEFINE_float('learning_rate', 0.001, "initial leanring rate")
-tf.app.flags.DEFINE_float('mom1', 0.9, "initial momentum rate")
-tf.app.flags.DEFINE_float('mom2', 0.5, "momentum rate after epoch_decay_start")
+tf.flags.DEFINE_string('dataset', 'cifar10', "{cifar10, svhn}")
 
-tf.app.flags.DEFINE_string('method', 'vat', "{vat, vatent, baseline}")
+# tf.flags.DEFINE_string('log_dir', "", "log_dir")
+tf.flags.DEFINE_integer('seed', 1, "initial random seed")
+tf.flags.DEFINE_bool('validation', False, "")
 
+tf.flags.DEFINE_integer('batch_size', 32, "the number of examples in a batch")
+tf.flags.DEFINE_integer('ul_batch_size', 128, "the number of unlabeled examples in a batch")
+tf.flags.DEFINE_integer('eval_batch_size', 100, "the number of eval examples in a batch")
+tf.flags.DEFINE_integer('eval_freq', 5, "")
+tf.flags.DEFINE_integer('num_epochs', 120, "the number of epochs for training")
+tf.flags.DEFINE_integer('epoch_decay_start', 80, "epoch of starting learning rate decay")
+tf.flags.DEFINE_integer('num_iter_per_epoch', 400, "the number of updates per epoch")
+tf.flags.DEFINE_float('learning_rate', 0.001, "initial leanring rate")
+tf.flags.DEFINE_float('mom1', 0.9, "initial momentum rate")
+tf.flags.DEFINE_float('mom2', 0.5, "momentum rate after epoch_decay_start")
 
-if FLAGS.dataset == 'cifar10':
-    from cifar10 import inputs, unlabeled_inputs
-elif FLAGS.dataset == 'svhn':
-    from svhn import inputs, unlabeled_inputs 
-else: 
-    raise NotImplementedError
-
+tf.flags.DEFINE_string('method', 'vat', "{vat, vatent, baseline}")
 
 NUM_EVAL_EXAMPLES = 5000
 
 
-def build_training_graph(x, y, ul_x, lr, mom):
+def build_training_graph(x, y, classes_count, lr, mom):
     global_step = tf.get_variable(
         name="global_step",
         shape=[],
@@ -49,18 +45,12 @@ def build_training_graph(x, y, ul_x, lr, mom):
         initializer=tf.constant_initializer(0.0),
         trainable=False,
     )
-    logit = vat.forward(x)
+    logit = vat.forward(x, classes_count)
     nll_loss = L.ce_loss(logit, y)
     with tf.variable_scope(tf.get_variable_scope(), reuse=True):
         if FLAGS.method == 'vat':
-            ul_logit = vat.forward(ul_x, is_training=True, update_batch_stats=False)
-            vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit)
+            vat_loss = vat.virtual_adversarial_loss(x, logit)
             additional_loss = vat_loss
-        elif FLAGS.method == 'vatent':
-            ul_logit = vat.forward(ul_x, is_training=True, update_batch_stats=False)
-            vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit)
-            ent_loss = L.entropy_y_x(ul_logit)
-            additional_loss = vat_loss + ent_loss
         elif FLAGS.method == 'baseline':
             additional_loss = 0
         else:
@@ -74,9 +64,9 @@ def build_training_graph(x, y, ul_x, lr, mom):
     return loss, train_op, global_step
 
 
-def build_eval_graph(x, y, ul_x):
+def build_eval_graph(x, y, classes_count):
     losses = {}
-    logit = vat.forward(x, is_training=False, update_batch_stats=False)
+    logit = vat.forward(x, classes_count, is_training=False, update_batch_stats=False)
     nll_loss = L.ce_loss(logit, y)
     losses['NLL'] = nll_loss
     acc = L.accuracy(logit, y)
@@ -85,8 +75,8 @@ def build_eval_graph(x, y, ul_x):
     scope.reuse_variables()
     at_loss = vat.adversarial_loss(x, y, nll_loss, is_training=False)
     losses['AT_loss'] = at_loss
-    ul_logit = vat.forward(ul_x, is_training=False, update_batch_stats=False)
-    vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit, is_training=False)
+    # ul_logit = vat.forward(x, classes_count, is_training=False, update_batch_stats=False)
+    vat_loss = vat.virtual_adversarial_loss(x, logit, is_training=False)
     losses['VAT_loss'] = vat_loss
     return losses
 
@@ -97,37 +87,21 @@ def main(_):
     tf.set_random_seed(numpy.random.randint(1234))
     with tf.Graph().as_default() as g:
         with tf.device("/cpu:0"):
-            images, labels = inputs(batch_size=FLAGS.batch_size,
-                                    train=True,
-                                    validation=FLAGS.validation,
-                                    shuffle=True)
-            ul_images = unlabeled_inputs(batch_size=FLAGS.ul_batch_size,
-                                         validation=FLAGS.validation,
-                                         shuffle=True)
-
-            images_eval_train, labels_eval_train = inputs(batch_size=FLAGS.eval_batch_size,
-                                                          train=True,
-                                                          validation=FLAGS.validation,
-                                                          shuffle=True)
-            ul_images_eval_train = unlabeled_inputs(batch_size=FLAGS.eval_batch_size,
-                                                    validation=FLAGS.validation,
-                                                    shuffle=True)
-
-            images_eval_test, labels_eval_test = inputs(batch_size=FLAGS.eval_batch_size,
-                                                        train=False,
-                                                        validation=FLAGS.validation,
-                                                        shuffle=True)
+            data, labels, classes_count = read_data('waveform-noise.csv')
 
         with tf.device(FLAGS.device):
             lr = tf.placeholder(tf.float32, shape=[], name="learning_rate")
             mom = tf.placeholder(tf.float32, shape=[], name="momentum")
             with tf.variable_scope("CNN") as scope:
                 # Build training graph
-                loss, train_op, global_step = build_training_graph(images, labels, ul_images, lr, mom)
+
+                X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2)
+
+                loss, train_op, global_step = build_training_graph(X_train, y_train, classes_count, lr, mom)
                 scope.reuse_variables()
                 # Build eval graph
-                losses_eval_train = build_eval_graph(images_eval_train, labels_eval_train, ul_images_eval_train)
-                losses_eval_test = build_eval_graph(images_eval_test, labels_eval_test, images_eval_test)
+                losses_eval_train = build_eval_graph(X_train, y_train, classes_count)
+                losses_eval_test = build_eval_graph(X_test, y_test, classes_count)
 
             init_op = tf.global_variables_initializer()
 
@@ -177,7 +151,7 @@ def main(_):
                 if (ep + 1) % FLAGS.eval_freq == 0 or ep + 1 == FLAGS.num_epochs:
                     # Eval on training data
                     act_values_dict = {}
-                    for key, _ in losses_eval_train.iteritems():
+                    for key, _ in losses_eval_train.items():
                         act_values_dict[key] = 0
                     n_iter_per_epoch = NUM_EVAL_EXAMPLES / FLAGS.eval_batch_size
                     for i in range(n_iter_per_epoch):
@@ -187,7 +161,7 @@ def main(_):
                             act_values_dict[key] += value
                     summary = tf.Summary()
                     current_global_step = sess.run(global_step)
-                    for key, value in act_values_dict.iteritems():
+                    for key, value in act_values_dict.items():
                         print("train-" + key, value / n_iter_per_epoch)
                         summary.value.add(tag=key, simple_value=value / n_iter_per_epoch)
                     if writer_train is not None:
@@ -195,7 +169,7 @@ def main(_):
 
                     # Eval on test data
                     act_values_dict = {}
-                    for key, _ in losses_eval_test.iteritems():
+                    for key, _ in losses_eval_test.items():
                         act_values_dict[key] = 0
                     n_iter_per_epoch = NUM_EVAL_EXAMPLES / FLAGS.eval_batch_size
                     for i in range(n_iter_per_epoch):
@@ -205,7 +179,7 @@ def main(_):
                             act_values_dict[key] += value
                     summary = tf.Summary()
                     current_global_step = sess.run(global_step)
-                    for key, value in act_values_dict.iteritems():
+                    for key, value in act_values_dict.items():
                         print("test-" + key, value / n_iter_per_epoch)
                         summary.value.add(tag=key, simple_value=value / n_iter_per_epoch)
                     if writer_test is not None:

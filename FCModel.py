@@ -1,46 +1,24 @@
 import keras
 import tensorflow as tf
 from tensorflow.keras import layers
+from BaseModel import BaseModel
 
-def logsoftmax(x):
-    xdev = x - tf.reduce_max(x, 1, keep_dims=True)
-    lsm = xdev - tf.math.log(tf.reduce_sum(tf.exp(xdev), 1, keep_dims=True))
-    return lsm
+def kl_divergence(p, q):
+    return tf.reduce_sum(p * (tf.math.log(p + 1e-16) - tf.math.log(q + 1e-16)), axis=1)
 
-def kl_divergence(y_true, y_pred):
-    q = tf.nn.softmax(y_true)
-    qlogq = tf.reduce_mean(tf.reduce_sum(q * logsoftmax(y_true), 1))
-    qlogp = tf.reduce_mean(tf.reduce_sum(q * logsoftmax(y_pred), 1))
-    return qlogq - qlogp
 
-class CustomModel(keras.Model):
+class CustomModel(BaseModel):
     def __init__(self, method, input_dim, classes_count, epsilon, alpha, xi):
-        super(CustomModel, self).__init__()
+        super(CustomModel, self).__init__(input_dim, classes_count)
         self.method = method
-        self.inputs = tf.keras.Input(shape=(input_dim,))
-        self.layer1 = layers.Dense(32, activation="relu", name="layer1")(self.inputs)
-        self.layer2 = layers.Dense(32, activation="relu", name="layer2")(self.layer1)
-        self.layer3 = layers.Dense(32, activation="relu", name="layer3")(self.layer2)
-        self.layer4 = layers.Dense(32, activation="relu", name="layer4")(self.layer3)
-        self.layer5 = layers.Dense(classes_count, activation="relu", name="layer5")(self.layer4)
         self.epsilon = epsilon
         self.alpha = alpha
         self.xi = xi
         self.setup_loss(self.inputs, epsilon, alpha, xi)
 
-    def call(self, inputs, training=None, mask=None):
-        x = self.inputs(inputs)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-        return self.layer5(x)
-
-    def get_config(self):
-        pass
-
     def setup_loss(self, inputs, epsilon, alpha, xi):
-        self.add_loss(self.build_vat_loss(inputs, epsilon, alpha, xi))
+        # self.add_loss(self.build_vat_loss(inputs, epsilon, alpha, xi))
+        pass
 
     def train_step(self, data):
         # Unpack the data. Its structure depends on your model and
@@ -48,9 +26,9 @@ class CustomModel(keras.Model):
         x, y = data
 
         self.my_train(x, y)
-        if self.method == 'OUR':
-            r_vadvs = self.compute_rvadvs(x, y, self.epsilon, self.xi)
-            self.my_train(x + r_vadvs, y)
+        # if self.method == 'OUR':
+        #     r_vadvs = self.compute_rvadvs(x, y, self.epsilon, self.xi)
+        #     self.my_train(x + r_vadvs, y)
         # Return a dict mapping metric names to current value
         return {m.name: m.result() for m in self.metrics}
 
@@ -69,6 +47,7 @@ class CustomModel(keras.Model):
         return loss
 
     def compute_rvadvs(self, x, y, epsilon, xi):
+        print(type(x), x.shape)
         d = tf.random.normal(shape=tf.shape(x))
         num_of_iterations = 1
         for _ in range(num_of_iterations):

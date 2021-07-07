@@ -2,9 +2,19 @@ import keras
 import tensorflow as tf
 from tensorflow.keras import layers
 from BaseModel import BaseModel
+import keras.backend as K
+from functools import reduce
+from keras.utils.generic_utils import to_list
+
+kl_func_loss = tf.keras.losses.KLDivergence()
 
 def kl_divergence(p, q):
-    return tf.reduce_sum(p * (tf.math.log(p + 1e-16) - tf.math.log(q + 1e-16)), axis=1)
+    return kl_func_loss(p,q)
+    # return tf.reduce_sum(p * (tf.math.log(p + 1e-16) - tf.math.log(q + 1e-16)), axis=1)
+
+
+def get_normalized_vector(d):
+    return tf.math.l2_normalize(d)
 
 
 class CustomModel(BaseModel):
@@ -32,11 +42,6 @@ class CustomModel(BaseModel):
         # Return a dict mapping metric names to current value
         return {m.name: m.result() for m in self.metrics}
 
-    def get_normalized_vector(self, d):
-        d /= (1e-12 + tf.reduce_max(tf.abs(d), range(1, len(d.get_shape())), keep_dims=True))
-        d /= tf.sqrt(1e-6 + tf.reduce_sum(tf.pow(d, 2.0), range(1, len(d.get_shape())), keep_dims=True))
-        return d
-
     def build_vat_loss(self, inputs, epsilon, alpha, xi):
         def loss(y_true, _):
             r_vadvs = self.compute_rvadvs(inputs, y_true, epsilon, xi)
@@ -47,16 +52,15 @@ class CustomModel(BaseModel):
         return loss
 
     def compute_rvadvs(self, x, y, epsilon, xi):
-        print(type(x), x.shape)
         d = tf.random.normal(shape=tf.shape(x))
         num_of_iterations = 1
         for _ in range(num_of_iterations):
-            d = xi * self.get_normalized_vector(d)
+            d = xi * get_normalized_vector(d)
             y_hat = self.call(x + d)
             dist = kl_divergence(y, y_hat)
             grad = tf.gradients(dist, [d], aggregation_method=2)[0]
             d = tf.stop_gradient(grad)
-        return epsilon * self.get_normalized_vector(d)
+        return epsilon * get_normalized_vector(d)
 
     def my_train(self, x, y):
         with tf.GradientTape() as tape:

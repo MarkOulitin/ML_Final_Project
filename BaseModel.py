@@ -10,17 +10,14 @@ def kl_divergence(p, q):
 class BaseModel(keras.Model):
     def __init__(self, input_dim, classes_count):
         super(BaseModel, self).__init__()
-        self.layer1 = layers.Dense(32, activation="relu", name="layer1")
-        self.layer2 = layers.Dense(32, activation="relu", name="layer2")
-        self.layer3 = layers.Dense(32, activation="relu", name="layer3")
-        self.layer4 = layers.Dense(32, activation="relu", name="layer4")
-        self.layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")
+
+        self.inputs = layers.Input(shape=(input_dim,))
+        self.layer1 = layers.Dense(32, activation="relu", name="layer1")(self.inputs)
+        self.layer2 = layers.Dense(32, activation="relu", name="layer2")(self.layer1)
+        self.layer3 = layers.Dense(32, activation="relu", name="layer3")(self.layer2)
+        self.layer4 = layers.Dense(32, activation="relu", name="layer4")(self.layer3)
+        self.layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(self.layer4)
+        self.model = keras.Model(inputs=self.inputs, outputs=self.layer5)
 
     def call(self, inputs, training=None, mask=None):
-        # x = self.inputs(inputs)
-        # x = self.layer1(x)
-        x = self.layer1(inputs)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-        return self.layer5(x)
+        return self.model(inputs, training, mask)

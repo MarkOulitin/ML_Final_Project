@@ -69,9 +69,9 @@ class ModelVatCustomFit(keras.Model):
             print("\nStart of epoch %d" % (epoch,))
             start_time_epoch = time.time()
             for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
-                with tf.GradientTape() as tape:
+                with tf.GradientTape(persistent=True) as tape:
                     y_pred = self(x_batch_train, training=True)
-                    loss_value = self.compute_loss(x_batch_train, y_batch_train, y_pred)
+                    loss_value = self.compute_loss(x_batch_train, y_batch_train, y_pred, tape)
                 grads = tape.gradient(loss_value, self.trainable_weights)
                 optimizer.apply_gradients(zip(grads, self.trainable_weights))
 
@@ -92,19 +92,20 @@ class ModelVatCustomFit(keras.Model):
 
         print("Time taken: %.2fs" % (time.time() - start_time))
 
-    def compute_loss(self, x, y_true, y_pred):
-        r_vadvs = self.compute_rvadvs(x, y_true, self.epsilon, self.xi)
-        y_hat_vadvs = self.call(x + r_vadvs)
+    def compute_loss(self, x, y_true, y_pred, tape):
+        r_vadvs = self.compute_rvadvs(x, y_true, self.epsilon, self.xi, tape)
+        y_hat_vadvs = self(x + r_vadvs)
         R_vadv = kl_divergence(y_true, y_hat_vadvs)
         return self.cross_entropy(y_true, y_pred) + self.alpha * R_vadv
 
-    def compute_rvadvs(self, x, y, epsilon, xi):
+    def compute_rvadvs(self, x, y, epsilon, xi, tape):
         d = tf.random.normal(shape=tf.shape(x))
+        d = tf.Variable(d, True)
         num_of_iterations = 1
         for _ in range(num_of_iterations):
             d = xi * get_normalized_vector(d)
             y_hat = self(x + d)
             dist = kl_divergence(y, y_hat)
-            grad = tf.gradients(dist, [d], aggregation_method=2)[0]
+            grad = tape.gradient(dist, [d])[0]
             d = tf.stop_gradient(grad)
         return epsilon * get_normalized_vector(d)

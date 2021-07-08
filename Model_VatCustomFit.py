@@ -3,18 +3,37 @@ import keras
 from keras import losses
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras import layers
+
+kl_func_loss = tf.keras.losses.KLDivergence()
+
+def kl_divergence(p, q):
+    return kl_func_loss(p,q)
+    # return tf.reduce_sum(p * (tf.math.log(p + 1e-16) - tf.math.log(q + 1e-16)), axis=1)
+
+
+def get_normalized_vector(d):
+    return tf.math.l2_normalize(d)
+
+def split_to_batches(x, y, batch_size):
+    indexes = np.arange(x.shape[0])
+    n_batches = x.shape[0] // batch_size
+    end = batch_size * n_batches
+    np.random.shuffle(indexes)
+    for step, batch_low_index in enumerate(range(0, end, batch_size)):
+        batch_indices = indexes[batch_low_index:batch_low_index + batch_size - 1]
+        x_batch_train = x[batch_indices, :]
+        y_batch_train = y[batch_indices, :]
+        yield x_batch_train, y_batch_train
 
 
 class ModelVatCustomFit(keras.Model):
-    def __init__(self, inputs, outputs, epsilon, alpha, xi, ip):
+    def __init__(self, inputs, outputs, method, epsilon, alpha, xi):
         super(ModelVatCustomFit, self).__init__(inputs=inputs, outputs=outputs)
+        self.method = method
         self.epsilon = epsilon
         self.alpha = alpha
         self.xi = xi
-        self.ip = ip
-
-    def call(self, inputs, training=None, mask=None):
-        super(ModelVatCustomFit, self).__call__(inputs, training=training, mask=mask)
 
     def get_config(self):
         pass
@@ -22,7 +41,7 @@ class ModelVatCustomFit(keras.Model):
     def fit(self,
             x=None,
             y=None,
-            batch_size=None,
+            batch_size=32,
             epochs=1,
             verbose='auto',
             callbacks=None,
@@ -39,24 +58,15 @@ class ModelVatCustomFit(keras.Model):
             max_queue_size=10,
             workers=1,
             use_multiprocessing=False):
-        assert len(x.shape) == 2 and len(y.shape) == 2 and y.shape[1] == 1
+        assert len(x.shape) == 2 and len(y.shape) == 2
         assert x.shape[0] == y.shape[0]
-
-        n = x.shape[0]
-        n_batches = n // batch_size
         loss_fn = losses.CategoricalCrossentropy()
-
+        optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
         start_time = time.time()
         for epoch in range(epochs):
             print("\nStart of epoch %d" % (epoch,))
             start_time_epoch = time.time()
-
-            # Iterate over the batches of the dataset.
-            for step in range(n_batches):
-                indices = np.random.randint(low=0, high=n, size=batch_size)
-                x_batch_train = x[indices, :]
-                y_batch_train = y[indices, :]
-
+            for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
                 with tf.GradientTape() as tape:
                     logits = self(x_batch_train, training=True)
                     loss_value = loss_fn(y_batch_train, logits)
@@ -68,11 +78,7 @@ class ModelVatCustomFit(keras.Model):
 
                 # Log every 200 batches.
                 if step % 200 == 0:
-                    print(
-                        "Training loss (for one batch) at step %d: %.4f"
-                        % (step, float(loss_value))
-                    )
-                    print("Seen so far: %d samples" % ((step + 1) * 64))
+                    print(f"Seen so far: {step + 1} batches")
 
             # Display metrics at the end of each epoch.
             # train_acc = train_acc_metric.result()
@@ -80,6 +86,6 @@ class ModelVatCustomFit(keras.Model):
             # Reset training metrics at the end of each epoch
             # train_acc_metric.reset_states()
 
-            print(f"Epoch {epoch}/{epochs} done, took %.2fs" % (time.time() - start_time_epoch))
+            print(f"Epoch {epoch}/{epochs} done, loss = {loss_value} took %.2fs" % (time.time() - start_time_epoch))
 
         print("Time taken: %.2fs" % (time.time() - start_time))

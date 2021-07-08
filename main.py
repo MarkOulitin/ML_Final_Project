@@ -51,11 +51,6 @@ def main(method):
     layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
     layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
     model = ModelVatCustomFit(inputs=in_layer, outputs=layer5, method=method, epsilon=epsilon, alpha= alpha, xi= xi)
-    model.compile(
-        loss= 'categorical_crossentropy',
-        optimizer='adam',
-        metrics=['accuracy', 'categorical_crossentropy']
-    )
     model.fit(X_train, y_train, epochs=1)
 
     # model.evaluate(X_test, y_test)

@@ -7,13 +7,15 @@ from tensorflow.keras import layers
 
 kl_func_loss = tf.keras.losses.KLDivergence()
 
+
 def kl_divergence(p, q):
-    return kl_func_loss(p,q)
+    return kl_func_loss(p, q)
     # return tf.reduce_sum(p * (tf.math.log(p + 1e-16) - tf.math.log(q + 1e-16)), axis=1)
 
 
 def get_normalized_vector(d):
     return tf.math.l2_normalize(d)
+
 
 def split_to_batches(x, y, batch_size):
     indexes = np.arange(x.shape[0])
@@ -34,6 +36,7 @@ class ModelVatCustomFit(keras.Model):
         self.epsilon = epsilon
         self.alpha = alpha
         self.xi = xi
+        self.cross_entropy = losses.CategoricalCrossentropy()
 
     def get_config(self):
         pass
@@ -60,7 +63,6 @@ class ModelVatCustomFit(keras.Model):
             use_multiprocessing=False):
         assert len(x.shape) == 2 and len(y.shape) == 2
         assert x.shape[0] == y.shape[0]
-        loss_fn = losses.CategoricalCrossentropy()
         optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
         start_time = time.time()
         for epoch in range(epochs):
@@ -68,8 +70,8 @@ class ModelVatCustomFit(keras.Model):
             start_time_epoch = time.time()
             for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
                 with tf.GradientTape() as tape:
-                    logits = self(x_batch_train, training=True)
-                    loss_value = loss_fn(y_batch_train, logits)
+                    y_pred = self(x_batch_train, training=True)
+                    loss_value = self.compute_loss(x_batch_train, y_batch_train, y_pred)
                 grads = tape.gradient(loss_value, self.trainable_weights)
                 optimizer.apply_gradients(zip(grads, self.trainable_weights))
 
@@ -89,3 +91,20 @@ class ModelVatCustomFit(keras.Model):
             print(f"Epoch {epoch}/{epochs} done, loss = {loss_value} took %.2fs" % (time.time() - start_time_epoch))
 
         print("Time taken: %.2fs" % (time.time() - start_time))
+
+    def compute_loss(self, x, y_true, y_pred):
+        r_vadvs = self.compute_rvadvs(x, y_true, self.epsilon, self.xi)
+        y_hat_vadvs = self.call(x + r_vadvs)
+        R_vadv = kl_divergence(y_true, y_hat_vadvs)
+        return self.cross_entropy(y_true, y_pred) + self.alpha * R_vadv
+
+    def compute_rvadvs(self, x, y, epsilon, xi):
+        d = tf.random.normal(shape=tf.shape(x))
+        num_of_iterations = 1
+        for _ in range(num_of_iterations):
+            d = xi * get_normalized_vector(d)
+            y_hat = self(x + d)
+            dist = kl_divergence(y, y_hat)
+            grad = tf.gradients(dist, [d], aggregation_method=2)[0]
+            d = tf.stop_gradient(grad)
+        return epsilon * get_normalized_vector(d)

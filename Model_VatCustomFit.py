@@ -71,7 +71,15 @@ class ModelVatCustomFit(keras.Model):
             for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
                 with tf.GradientTape() as tape:
                     y_pred = self(x_batch_train, training=True)
-                    loss_value = self.compute_loss(x_batch_train, y_batch_train, y_pred, tape)
+                    if self.method == 'OUR':
+                        with tape.stop_recording():
+                            r_vadvs = self.compute_rvadvs(x_batch_train, y_batch_train, self.epsilon, self.xi)
+                        y_hat_vadvs = self(x_batch_train + r_vadvs, training=True)
+                    else:
+                        with tape.stop_recording():
+                            r_vadvs = self.compute_rvadvs(x_batch_train, y_batch_train, self.epsilon, self.xi)
+                        y_hat_vadvs = self(x_batch_train + r_vadvs, training=False)
+                    loss_value = self.compute_loss(y_batch_train, y_pred, y_hat_vadvs)
                 grads = tape.gradient(loss_value, self.trainable_weights)
                 optimizer.apply_gradients(zip(grads, self.trainable_weights))
 
@@ -92,10 +100,7 @@ class ModelVatCustomFit(keras.Model):
 
         print("Time taken: %.2fs" % (time.time() - start_time))
 
-    def compute_loss(self, x, y_true, y_pred, tape):
-        with tape.stop_recording():
-            r_vadvs = self.compute_rvadvs(x, y_true, self.epsilon, self.xi)
-        y_hat_vadvs = self(x + r_vadvs)
+    def compute_loss(self, y_true, y_pred, y_hat_vadvs):
         R_vadv = kl_divergence(y_true, y_hat_vadvs)
         return self.cross_entropy(y_true, y_pred) + self.alpha * R_vadv
 

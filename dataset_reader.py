@@ -51,7 +51,23 @@ def read_data(filename):
     input_dim = X.shape[1]
     return X, y, classes_count, input_dim
 
+
 if __name__ == '__main__':
-    # for filename in os.listdir(dataset_dir):
-    #     read_data(filename)
     read_data('waveform-noise.csv')
+
+
+def get_files():
+    count = 0
+    for filename in os.listdir(dataset_dir):
+        if fetch_dataset_by_data(filename):
+            count += 1
+    print(f'total {count}')
+
+
+def fetch_dataset_by_data(filename):
+    df = pd.read_csv(dataset_dir + filename)
+    types = df.dtypes[df.dtypes == 'float64']
+    if len(types) == (len(df.dtypes) - 1) and len(df.index) > 1000:
+        print(filename)
+        return True
+    return False

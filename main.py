@@ -8,9 +8,10 @@ import os
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
-
+from keras_tuner.tuners import RandomSearch
 from Model_VatCustomFit import ModelVatCustomFit
 from dataset_reader import read_data
+from Datasets import datasets_names
 
 
 def buildModel(input_dim, classes_count):
@@ -22,18 +23,6 @@ def buildModel(input_dim, classes_count):
     model = layers.Dense(classes_count, activation="relu", name="layer5")(model)
     model = keras.Model(inputs=inputs, outputs=model)
     return model, inputs
-
-
-# def build_vat_loss(model, inputs, epsilon, alpha, xi):
-#     cce = tf.keras.losses.CategoricalCrossentropy()
-#
-#     def loss(y_true, y_pred):
-#         r_vadvs = model.compute_rvadvs(inputs, y_true, epsilon, xi)
-#         y_hat_vadvs = model(inputs + r_vadvs)
-#         R_vadv = kl_divergence(y_true, y_hat_vadvs)
-#         return cce(y_true, y_pred) + alpha * R_vadv
-#
-#     return loss
 
 
 def main(method):
@@ -53,6 +42,15 @@ def main(method):
     model = ModelVatCustomFit(inputs=in_layer, outputs=layer5, method=method, epsilon=epsilon, alpha= alpha, xi= xi)
     model.fit(X_train, y_train, epochs=1)
 
+    tuner = RandomSearch(
+        hypermodel,
+        objective='val_accuracy',
+        seed=SEED,
+        max_trials=MAX_TRIALS,
+        executions_per_trial=EXECUTION_PER_TRIAL,
+        directory='random_search',
+        project_name='cifar10'
+    )
     # model.evaluate(X_test, y_test)
     return
 

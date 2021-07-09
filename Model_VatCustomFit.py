@@ -71,10 +71,13 @@ class ModelVatCustomFit(keras.Model):
             for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
                 with tf.GradientTape() as tape:
                     y_pred = self(x_batch_train, training=True)
-                    with tape.stop_recording():
-                        r_vadvs = self.compute_rvadvs(x_batch_train, y_pred, self.epsilon, self.xi)
-                    y_hat_vadvs = self(x_batch_train + r_vadvs, training=False)
-                    loss_value = self.compute_loss(y_batch_train, y_pred, y_hat_vadvs)
+                    if self.method == 'Dropout':
+                        with tape.stop_recording():
+                            r_vadvs = self.compute_rvadvs(x_batch_train, y_pred, self.epsilon, self.xi)
+                        y_hat_vadvs = self(x_batch_train + r_vadvs, training=False)
+                        loss_value = self.compute_loss(y_batch_train, y_pred, y_hat_vadvs)
+                    else:
+                        loss_value = self.cross_entropy(y_batch_train, y_pred)
                 grads = tape.gradient(loss_value, self.trainable_weights)
                 optimizer.apply_gradients(zip(grads, self.trainable_weights))
 
@@ -104,13 +107,13 @@ class ModelVatCustomFit(keras.Model):
 
     def compute_rvadvs(self, x, y, epsilon, xi):
         d = tf.random.normal(shape=tf.shape(x))
-        d = tf.Variable(d, True)
         num_of_iterations = 1
-        with tf.GradientTape() as d_tape:
-            for _ in range(num_of_iterations):
+        for _ in range(num_of_iterations):
+            d = tf.Variable(d, True)
+            with tf.GradientTape() as d_tape:
                 d = xi * get_normalized_vector(d)
-                y_hat = self(x + d)
+                y_hat = self(x + d, training=False)
                 dist = kl_divergence(y, y_hat)
                 grad = d_tape.gradient(dist, [d])[0]
                 d = tf.stop_gradient(grad)
-            return epsilon * get_normalized_vector(d)
+        return epsilon * get_normalized_vector(d)

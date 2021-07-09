@@ -70,19 +70,19 @@ class ModelVatCustomFit(keras.Model):
             for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
                 with tf.GradientTape() as tape:
                     y_pred = self(x_batch_train, training=True)
+                    y_batch_train_tensor = tf.convert_to_tensor(y_batch_train)
                     if self.method == 'Dropout':
                         with tape.stop_recording():
                             r_vadvs = self.compute_rvadvs(x_batch_train, y_pred, self.epsilon, self.xi)
                         y_hat_vadvs = self(x_batch_train + r_vadvs, training=False)
-                        loss_value = self.compute_loss(y_batch_train, y_pred, y_hat_vadvs)
+                        loss_value = self.compute_loss(y_batch_train_tensor, y_pred, y_hat_vadvs)
                     else:
-                        print(type(y_batch_train))
-                        loss_value = self.compiled_loss(y_batch_train, y_pred)
+                        loss_value = self.compiled_loss(y_batch_train_tensor, y_pred)
                 grads = tape.gradient(loss_value, self.trainable_weights)
                 self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
 
                 # Update training metric.
-                train_acc_metric.update_state(y_batch_train, y_pred)
+                train_acc_metric.update_state(y_batch_train_tensor, y_pred)
 
                 # Log every 200 batches.
                 # if step % 200 == 0:
@@ -95,9 +95,10 @@ class ModelVatCustomFit(keras.Model):
             train_acc_metric.reset_states()
 
             print(
-                f"Epoch {epoch + 1}/{epochs} done, loss={loss_value}, "
+                f"Epoch {epoch + 1}/{epochs} "
+                f"done, loss={loss_value}, "
                 f"train acc={train_acc * 100:.2f}%%, "
-                f"took {(time.time() - start_time_epoch):.2fs}"
+                f"took {(time.time() - start_time_epoch):.2f}s"
             )
 
         self.train_time = time.time() - start_time

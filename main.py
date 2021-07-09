@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import keras
-import keras.utils
-from keras import layers, losses, optimizers
+from keras import layers, losses
+from keras.optimizers import Adam
 import os
 from sklearn.model_selection import train_test_split, KFold, RandomizedSearchCV
 import tensorflow as tf
@@ -50,7 +50,7 @@ def configHyperModelFactory(method, input_dim, classes_count):
         layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
         layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
         model = ModelVatCustomFit(inputs=in_layer, outputs=layer5, method=method, epsilon=epsilon, alpha=alpha, xi=xi)
-        model.compile(loss=losses.CategoricalCrossentropy(), optimizer=optimizers.Adam())
+        model.compile(loss=losses.CategoricalCrossentropy(), optimizer=Adam())
         return model
 
     return buildModel

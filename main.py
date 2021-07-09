@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import keras
 import keras.utils
+from tensorflow.keras import losses
 from tensorflow.keras import layers
 import os
 from sklearn.model_selection import train_test_split, KFold, RandomizedSearchCV
@@ -12,7 +13,8 @@ from dataset_reader import read_data
 from Datasets import datasets_names
 from keras.wrappers.scikit_learn import KerasClassifier
 from scipy.stats import uniform
-from sklearn.metrics import roc_auc_score, precision_score, confusion_matrix
+from sklearn.metrics import roc_auc_score, precision_score, confusion_matrix, average_precision_score
+import time
 
 CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
@@ -49,9 +51,20 @@ def configHyperModelFactory(method, input_dim, classes_count):
         layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
         layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
         model = ModelVatCustomFit(inputs=in_layer, outputs=layer5, method=method, epsilon=epsilon, alpha=alpha, xi=xi)
+        model.compile(optimizer= tf.keras.optimizers.Adam(learning_rate=1e-3), loss= losses.CategoricalCrossentropy())
         return model
 
     return buildModel
+
+
+def calculate_inference_time(X, model):
+    indexes = np.arange(X.shape[0])
+    np.random.shuffle(indexes)
+    selected_indexes = indexes[:1000]
+    x_test = X[selected_indexes, :]
+    start_time = time.time()
+    model.predict(x_test)
+    return time.time() - start_time
 
 
 def main(method):
@@ -68,14 +81,36 @@ def main(method):
         clf = RandomizedSearchCV(model, distributions, random_state=0, cv=CV_INNER_N_ITERATIONS)
         result = clf.fit(X_train, y_train)
         best_model = result.best_estimator_
-        best_model.model.__class__ = ModelVatCustomFit
-        train_time = best_model.model.train_time
         y_predict = best_model.predict(X_test)
-        TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, [])
+        y_predict_proba = best_model.predict_proba(X_test)
+        print(y_predict.shape, y_predict[0])
+        print(y_predict_proba.shape, y_predict_proba[0])
+        # TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, [])
+
         # may be predict proba?
         # not needed because we have last layer softmax aka returns array of probabilities - what roc_auc expects
-        AUC_ROC = roc_auc_score(y_test, y_predict)
+        # AUC_ROC = roc_auc_score(y_test, y_predict)
+        # AUC_Precision_Recall = average_precision_score(y_test, y_predict)
+        # best_model.model.__class__ = ModelVatCustomFit
+        # train_time = best_model.model.train_time
+        # inference_time = calculate_inference_time(data, best_model)
+
+
+def some_test(method):
+    data, labels, classes_count, input_dim = read_data('waveform-noise.csv')
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2)
+    distributions = dict(alpha=np.linspace(0, 2, 101),
+                         epsilon=uniform(loc=1e-6, scale=2e-3))
+    model_factory = configHyperModelFactory(method, input_dim, classes_count)
+    model = KerasClassifier(build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
+    # clf = RandomizedSearchCV(model, distributions, random_state=0, scoring='accuracy', cv=CV_INNER_N_ITERATIONS)
+    result = model.fit(X_train, y_train)
+    # best_model = result.best_estimator_
+    # y_predict = best_model.predict(X_test)
+    # y_predict_proba = best_model.predict_proba(X_test)
+    # print(y_predict.shape, y_predict[0])
+    # print(y_predict_proba.shape, y_predict_proba[0])
 
 
 if __name__ == "__main__":
-    main('blah')
+    some_test('blah')

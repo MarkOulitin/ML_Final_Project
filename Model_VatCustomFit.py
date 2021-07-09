@@ -37,7 +37,6 @@ class ModelVatCustomFit(keras.Model):
         self.alpha = alpha
         self.xi = xi
         self.train_time = None
-        self.cross_entropy = losses.CategoricalCrossentropy()
 
     def get_config(self):
         pass
@@ -64,7 +63,6 @@ class ModelVatCustomFit(keras.Model):
             use_multiprocessing=False):
         assert len(x.shape) == 2 and len(y.shape) == 2
         assert x.shape[0] == y.shape[0]
-        optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
         start_time = time.time()
         for epoch in range(epochs):
             print("\nStart of epoch %d" % (epoch,))
@@ -78,9 +76,9 @@ class ModelVatCustomFit(keras.Model):
                         y_hat_vadvs = self(x_batch_train + r_vadvs, training=False)
                         loss_value = self.compute_loss(y_batch_train, y_pred, y_hat_vadvs)
                     else:
-                        loss_value = self.cross_entropy(y_batch_train, y_pred)
+                        loss_value = self.compiled_loss(y_batch_train, y_pred)
                 grads = tape.gradient(loss_value, self.trainable_weights)
-                optimizer.apply_gradients(zip(grads, self.trainable_weights))
+                self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
 
                 # Update training metric.
                 # train_acc_metric.update_state(y_batch_train, logits)
@@ -105,7 +103,7 @@ class ModelVatCustomFit(keras.Model):
             R_vadv = kl_divergence(y_true, y_hat_vadvs)
         else:
             R_vadv = kl_divergence(y_pred, y_hat_vadvs)
-        return self.cross_entropy(y_true, y_pred) + self.alpha * R_vadv
+        return self.compiled_loss(y_true, y_pred) + self.alpha * R_vadv
 
     def compute_rvadvs(self, x, y, epsilon, xi):
         d = tf.random.normal(shape=tf.shape(x))

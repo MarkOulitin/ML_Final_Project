@@ -43,10 +43,6 @@ def compute_tpr_fpr_acc(y_true, y_pred):
     TP = TP.sum()
     TN = TN.sum()
 
-    FP = FP.sum()
-    FN = FN.sum()
-    TP = TP.sum()
-    TN = TN.sum()
     # True positive rate
     TPR = TP / (TP + FN)
     # False positive rate

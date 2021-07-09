@@ -22,7 +22,7 @@ CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
 
 
-# https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
+# taken from https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
 def compute_tpr_fpr_acc(y_true, y_pred, y_pred_probabilities):
     conf_mat = confusion_matrix(y_true, y_pred)
     FP = confusion_matrix.sum(axis=0) - np.diag(conf_mat)

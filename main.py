@@ -25,17 +25,30 @@ CV_INNER_N_ITERATIONS = 3
 # taken from https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
 def compute_tpr_fpr_acc(y_true, y_pred):
     conf_mat = confusion_matrix(y_true, y_pred)
-    FP = conf_mat.sum(axis=0) - np.diag(conf_mat)
-    FN = conf_mat.sum(axis=1) - np.diag(conf_mat)
-    TP = np.diag(conf_mat)
-    TN = conf_mat.sum() - (FP + FN + TP)
+    diag = np.diag(conf_mat)
+    all_sum = conf_mat.sum()
+
+    FP = conf_mat.sum(axis=0) - diag
+    FN = conf_mat.sum(axis=1) - diag
+    TP = diag
+    TN = all_sum - (FP + FN + TP)
+
+    # print(conf_mat)
+    # print(f'FP {FP}, {FP.sum()}')
+    # print(f'FN {FN}, {FN.sum()}')
+    # print(f'TP {TP}, {TP.sum()}')
+    # print(f'TN {TN}, {TN.sum()}')
+    FP = FP.sum()
+    FN = FN.sum()
+    TP = TP.sum()
+    TN = TN.sum()
 
     # True positive rate
     TPR = TP / (TP + FN)
     # False positive rate
     FPR = FP / (FP + TN)
     # Overall accuracy
-    ACC = (TP + TN) / (TP + FP + FN + TN)
+    ACC = TP / all_sum
 
     PRECISION = TP / (TP + FP)
 
@@ -122,8 +135,10 @@ def some_test(method):
         random_state=0
     )
     result = clf.fit(X_train, y_train)
-    # print(result.refit_time_, result.best_estimator_.model.train_time)
+    print(result.refit_time_, result.best_estimator_.model.train_time)
     best_model = result.best_estimator_
+    # model.fit(X_train, y_train)
+    # best_model = model
     y_predict = best_model.predict(X_test)
     y_predict_proba = best_model.predict_proba(X_test)
     report_performance(data, y_predict, y_predict_proba, y_test, best_model)

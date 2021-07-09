@@ -86,6 +86,7 @@ class ModelVatCustomFit(keras.Model):
                         loss_value = self.compute_loss(y_batch_train, y_pred, y_hat_vadvs)
                 grads = tape.gradient(loss_value, self.trainable_weights)
                 self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
+                self.compiled_metrics.update_state(y, y_pred)
 
                 # Update training metric.
                 train_acc_metric.update_state(y_batch_train, y_pred)

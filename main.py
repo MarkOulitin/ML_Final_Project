@@ -16,7 +16,8 @@ from scipy.stats import uniform
 
 from Model_VatCustomFit import ModelVatCustomFit
 from dataset_reader import read_data
-from Datasets import datasets_names
+from Datasets import get_datasets_names
+from utils import save_to_dict, create_dict, save_to_csv
 
 CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
@@ -55,6 +56,7 @@ def configHyperModelFactory(method, input_dim, classes_count):
         layer3 = layers.Dense(32, activation="relu", name="layer3")(layer2)
         layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
         layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
+        # TODO if method is Dropout then add dropout
         model = ModelVatCustomFit(
             inputs=in_layer,
             outputs=layer5,
@@ -80,10 +82,22 @@ def calculate_inference_time(X, model):
     return time.time() - start_time
 
 
-def main(method):
-    data, labels, classes_count, input_dim = read_data('waveform-noise.csv')
-    distributions = dict(alpha=np.linspace(0, 2, 101),
-                         epsilon=uniform(loc=1e-6, scale=2e-3))
+def main():
+    datasets_names = get_datasets_names()
+    methods = ['Article', 'OUR', 'Dropout']
+    for dataset_name in datasets_names:
+        for method in methods:
+            evaluate(dataset_name, method)
+
+def evaluate(dataset_name, method):
+    performance = create_dict(dataset_name, method)
+    data, labels, classes_count, input_dim = read_data(dataset_name)
+    if method != 'Dropout':
+        distributions = dict(alpha=np.linspace(0, 2, 101),
+                             epsilon=uniform(loc=1e-6, scale=2e-3))
+    else:
+        # TODO dropout rate
+        distributions = dict(alpha=np.linspace(0, 2, 101))
     model_factory = configHyperModelFactory(method, input_dim, classes_count)
     outer_cv = KFold(n_splits=CV_OUTER_N_ITERATIONS)
 
@@ -103,11 +117,9 @@ def main(method):
         best_model = result.best_estimator_
         y_predict = best_model.predict(X_test)
         y_predict_proba = best_model.predict_proba(X_test)
-        TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict)
-        AUC_ROC = roc_auc_score(y_test, y_predict_proba)
-        AUC_Precision_Recall = average_precision_score(y_test, y_predict_proba)
-        train_time = result.best_estimator_.model.train_time
-        inference_time = calculate_inference_time(data, best_model)
+        report = report_performance(data, y_predict, y_predict_proba, y_test, best_model)
+        save_to_dict(performance, *report)
+    save_to_csv(performance, dataset_name + "_" + method)
 
 
 def some_test(method):
@@ -135,6 +147,7 @@ def some_test(method):
     save_to_dict(performance, *report)
     save_to_csv(performance, 'banana')
 
+
 def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, is_print=False):
     TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict)
     y_test_one_hot = keras.utils.to_categorical(y_test)
@@ -152,35 +165,6 @@ def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, 
               f'TRAIN TIME {train_time}',
               f'INFERENCE TIME FOR 1000 INSTANCES {inference_time}', sep="\n")
     return TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time
-
-
-def save_to_dict(dict, TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time):
-    dict['TPR'].append(TPR)
-    dict['FPR'].append(FPR)
-    dict['ACC'].append(ACC)
-    dict['PRECISION'].append(PRECISION)
-    dict['AUC_ROC'].append(AUC_ROC)
-    dict['AUC_Precision_Recall'].append(AUC_Precision_Recall)
-    dict['train_time'].append(train_time)
-    dict['inference_time'].append(inference_time)
-
-
-def create_dict():
-    output = dict()
-    output['TPR'] = []
-    output['FPR'] = []
-    output['ACC'] = []
-    output['PRECISION'] = []
-    output['AUC_ROC'] = []
-    output['AUC_Precision_Recall'] = []
-    output['train_time'] = []
-    output['inference_time'] = []
-    return output
-
-
-def save_to_csv(dict, filename):
-    df = pd.DataFrame.from_dict(dict)
-    df.to_csv(filename + '.csv', index=False)
 
 
 if __name__ == "__main__":

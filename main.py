@@ -111,6 +111,7 @@ def main(method):
 
 
 def some_test(method):
+    performance = create_dict()
     data, labels, classes_count, input_dim = read_data('waveform-noise.csv')
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2)
     distributions = dict(alpha=np.linspace(0, 2, 101),
@@ -130,24 +131,56 @@ def some_test(method):
     best_model = result.best_estimator_
     y_predict = best_model.predict(X_test)
     y_predict_proba = best_model.predict_proba(X_test)
-    report_performance(data, y_predict, y_predict_proba, y_test, best_model)
+    report = report_performance(data, y_predict, y_predict_proba, y_test, best_model, is_print=True)
+    save_to_dict(performance, *report)
+    save_to_csv(performance, 'banana')
 
-
-def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model):
+def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, is_print=False):
     TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict)
     y_test_one_hot = keras.utils.to_categorical(y_test)
-    AUC_ROC = roc_auc_score(y_test_one_hot, y_predict_proba)
-    AUC_Precision_Recall = average_precision_score(y_test_one_hot, y_predict_proba)
+    AUC_ROC = roc_auc_score(y_test_one_hot, y_predict_proba, average='micro')
+    AUC_Precision_Recall = average_precision_score(y_test_one_hot, y_predict_proba, average='micro')
     train_time = best_model.model.train_time
     inference_time = calculate_inference_time(dataset, best_model)
-    print(f'Accuracy {ACC}',
-          f'TPR {TPR}',
-          f'FPR {FPR}',
-          f'PRECISION {PRECISION}',
-          f'AUC ROC {AUC_ROC}',
-          f'AUC PRECISION RECALL {AUC_Precision_Recall}',
-          f'TRAIN TIME {train_time}',
-          f'INFERENCE TIME FOR 1000 INSTANCES {inference_time}', sep="\n")
+    if is_print:
+        print(f'Accuracy {ACC}',
+              f'TPR {TPR}',
+              f'FPR {FPR}',
+              f'PRECISION {PRECISION}',
+              f'AUC ROC {AUC_ROC}',
+              f'AUC PRECISION RECALL {AUC_Precision_Recall}',
+              f'TRAIN TIME {train_time}',
+              f'INFERENCE TIME FOR 1000 INSTANCES {inference_time}', sep="\n")
+    return TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time
+
+
+def save_to_dict(dict, TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time):
+    dict['TPR'].append(TPR)
+    dict['FPR'].append(FPR)
+    dict['ACC'].append(ACC)
+    dict['PRECISION'].append(PRECISION)
+    dict['AUC_ROC'].append(AUC_ROC)
+    dict['AUC_Precision_Recall'].append(AUC_Precision_Recall)
+    dict['train_time'].append(train_time)
+    dict['inference_time'].append(inference_time)
+
+
+def create_dict():
+    output = dict()
+    output['TPR'] = []
+    output['FPR'] = []
+    output['ACC'] = []
+    output['PRECISION'] = []
+    output['AUC_ROC'] = []
+    output['AUC_Precision_Recall'] = []
+    output['train_time'] = []
+    output['inference_time'] = []
+    return output
+
+
+def save_to_csv(dict, filename):
+    df = pd.DataFrame.from_dict(dict)
+    df.to_csv(filename + '.csv', index=False)
 
 
 if __name__ == "__main__":

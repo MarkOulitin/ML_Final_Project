@@ -23,12 +23,12 @@ CV_INNER_N_ITERATIONS = 3
 
 
 # taken from https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
-def compute_tpr_fpr_acc(y_true, y_pred, y_pred_probabilities):
+def compute_tpr_fpr_acc(y_true, y_pred):
     conf_mat = confusion_matrix(y_true, y_pred)
-    FP = confusion_matrix.sum(axis=0) - np.diag(conf_mat)
-    FN = confusion_matrix.sum(axis=1) - np.diag(conf_mat)
+    FP = conf_mat.sum(axis=0) - np.diag(conf_mat)
+    FN = conf_mat.sum(axis=1) - np.diag(conf_mat)
     TP = np.diag(conf_mat)
-    TN = confusion_matrix.values.sum() - (FP + FN + TP)
+    TN = conf_mat.sum() - (FP + FN + TP)
 
     # True positive rate
     TPR = TP / (TP + FN)
@@ -39,7 +39,6 @@ def compute_tpr_fpr_acc(y_true, y_pred, y_pred_probabilities):
 
     PRECISION = TP / (TP + FP)
 
-    # pos_probs =y_pred_probabilities[:, ]
     return TPR, FPR, ACC, PRECISION
 
 
@@ -87,11 +86,11 @@ def main(method):
     for train_indexes, test_indexes in outer_cv.split(data):
         X_train, X_test = data[train_indexes, :], data[test_indexes, :]
         y_train, y_test = labels[train_indexes], labels[test_indexes]
-        model = KerasClassifier(build_fn=model_factory, epochs=5, batch_size=32, verbose=0)
+        model = KerasClassifier(build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
         clf = RandomizedSearchCV(
             model,
             param_distributions=distributions,
-            n_iter=50,
+            n_iter=1,
             scoring='accuracy',
             cv=CV_INNER_N_ITERATIONS,
             random_state=0
@@ -100,17 +99,11 @@ def main(method):
         best_model = result.best_estimator_
         y_predict = best_model.predict(X_test)
         y_predict_proba = best_model.predict_proba(X_test)
-        print(y_predict.shape, y_predict[0])
-        print(y_predict_proba.shape, y_predict_proba[0])
-        # TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, [])
-
-        # may be predict proba?
-        # not needed because we have last layer softmax aka returns array of probabilities - what roc_auc expects
-        # AUC_ROC = roc_auc_score(y_test, y_predict)
-        # AUC_Precision_Recall = average_precision_score(y_test, y_predict)
-        # best_model.model.__class__ = ModelVatCustomFit
-        # train_time = best_model.model.train_time
-        # inference_time = calculate_inference_time(data, best_model)
+        TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict)
+        AUC_ROC = roc_auc_score(y_test, y_predict_proba)
+        AUC_Precision_Recall = average_precision_score(y_test, y_predict_proba)
+        train_time = result.best_estimator_.model.train_time
+        inference_time = calculate_inference_time(data, best_model)
 
 
 def some_test(method):
@@ -120,7 +113,6 @@ def some_test(method):
                          epsilon=uniform(loc=1e-6, scale=2e-3))
     model_factory = configHyperModelFactory(method, input_dim, classes_count)
     model = KerasClassifier(build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
-    # model.fit(X_train, y_train)
     clf = RandomizedSearchCV(
         model,
         param_distributions=distributions,
@@ -130,12 +122,28 @@ def some_test(method):
         random_state=0
     )
     result = clf.fit(X_train, y_train)
-    print(result.refit_time_, result.best_estimator_.model.train_time)
-    # best_model = result.best_estimator_
-    # y_predict = best_model.predict(X_test)
-    # y_predict_proba = best_model.predict_proba(X_test)
-    # print(y_predict.shape, y_predict[0])
-    # print(y_predict_proba.shape, y_predict_proba[0])
+    # print(result.refit_time_, result.best_estimator_.model.train_time)
+    best_model = result.best_estimator_
+    y_predict = best_model.predict(X_test)
+    y_predict_proba = best_model.predict_proba(X_test)
+    report_performance(data, y_predict, y_predict_proba, y_test, best_model)
+
+
+def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model):
+    TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict)
+    y_test_one_hot = keras.utils.to_categorical(y_test)
+    AUC_ROC = roc_auc_score(y_test_one_hot, y_predict_proba)
+    AUC_Precision_Recall = average_precision_score(y_test_one_hot, y_predict_proba)
+    train_time = best_model.model.train_time
+    inference_time = calculate_inference_time(dataset, best_model)
+    print(f'Accuracy {ACC}',
+          f'TPR {TPR}',
+          f'FPR {FPR}',
+          f'PRECISION {PRECISION}',
+          f'AUC ROC {AUC_ROC}',
+          f'AUC PRECISION RECALL {AUC_Precision_Recall}',
+          f'TRAIN TIME {train_time}',
+          f'INFERENCE TIME FOR 1000 INSTANCES {inference_time}', sep="\n")
 
 
 if __name__ == "__main__":

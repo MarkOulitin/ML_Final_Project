@@ -1,19 +1,22 @@
+import os
+import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import keras
-from keras import layers, losses
-from keras.optimizers import Adam
-import os
-from sklearn.model_selection import train_test_split, KFold, RandomizedSearchCV
+
 import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers, losses, optimizers
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+
+from sklearn.model_selection import train_test_split, KFold, RandomizedSearchCV
+from sklearn.metrics import roc_auc_score, precision_score, confusion_matrix, average_precision_score
+from scipy.stats import uniform
+
 from Model_VatCustomFit import ModelVatCustomFit
 from dataset_reader import read_data
 from Datasets import datasets_names
-from keras.wrappers.scikit_learn import KerasClassifier
-from scipy.stats import uniform
-from sklearn.metrics import roc_auc_score, precision_score, confusion_matrix, average_precision_score
-import time
 
 CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
@@ -50,7 +53,7 @@ def configHyperModelFactory(method, input_dim, classes_count):
         layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
         layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
         model = ModelVatCustomFit(inputs=in_layer, outputs=layer5, method=method, epsilon=epsilon, alpha=alpha, xi=xi)
-        model.compile(loss=losses.CategoricalCrossentropy(), optimizer=Adam())
+        model.compile(loss=losses.CategoricalCrossentropy(), optimizer=optimizers.Adam(learning_rate=1e-3))
         return model
 
     return buildModel

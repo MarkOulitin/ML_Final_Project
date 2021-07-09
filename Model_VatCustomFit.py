@@ -1,8 +1,8 @@
 import time
-import keras
-from keras import losses, metrics
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import losses, metrics
 
 kl_func_loss = losses.KLDivergence()
 
@@ -25,7 +25,7 @@ def split_to_batches(x, y, batch_size):
         batch_indices = indexes[batch_low_index:batch_low_index + batch_size - 1]
         x_batch_train = x[batch_indices, :]
         y_batch_train = y[batch_indices, :]
-        yield x_batch_train, y_batch_train
+        yield tf.convert_to_tensor(x_batch_train), tf.convert_to_tensor(y_batch_train)
 
 
 class ModelVatCustomFit(keras.Model):
@@ -62,6 +62,7 @@ class ModelVatCustomFit(keras.Model):
             use_multiprocessing=False):
         assert len(x.shape) == 2 and len(y.shape) == 2
         assert x.shape[0] == y.shape[0]
+
         train_acc_metric = metrics.CategoricalAccuracy()
         start_time = time.time()
         for epoch in range(epochs):
@@ -70,13 +71,12 @@ class ModelVatCustomFit(keras.Model):
             for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
                 with tf.GradientTape() as tape:
                     y_pred = self(x_batch_train, training=True)
-                    if self.method == 'Dropout':
+                    if self.method != 'Dropout':
                         with tape.stop_recording():
                             r_vadvs = self.compute_rvadvs(x_batch_train, y_pred, self.epsilon, self.xi)
                         y_hat_vadvs = self(x_batch_train + r_vadvs, training=False)
                         loss_value = self.compute_loss(y_batch_train, y_pred, y_hat_vadvs)
                     else:
-                        print(type(y_batch_train))
                         loss_value = self.compiled_loss(y_batch_train, y_pred)
                 grads = tape.gradient(loss_value, self.trainable_weights)
                 self.optimizer.apply_gradients(zip(grads, self.trainable_weights))

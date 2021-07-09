@@ -30,13 +30,11 @@ def split_to_data_and_target(df: pd.DataFrame):
     return X, y
 
 
+
 def preprocessing(df):
     # print(list(df.columns.values), df.shape[0])
     X, y = split_to_data_and_target(df)
     classes_count = df[df.columns[-1]].nunique()
-    b = np.zeros((y.size, y.max() + 1))
-    b[np.arange(y.size), y] = 1
-    y = b
     return X, y, classes_count
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     # return X_train, X_test, y_train, y_test

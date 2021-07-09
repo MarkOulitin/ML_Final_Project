@@ -25,10 +25,13 @@ def split_to_batches(x, y, batch_size):
         batch_indices = indexes[batch_low_index:batch_low_index + batch_size - 1]
         x_batch_train = x[batch_indices, :]
         y_batch_train = y[batch_indices, :]
-        yield tf.convert_to_tensor(x_batch_train), tf.convert_to_tensor(y_batch_train)
+
+        x_batch_train = tf.convert_to_tensor(x_batch_train)
+        y_batch_train = tf.convert_to_tensor(y_batch_train)
+        yield x_batch_train, y_batch_train
 
 
-class ModelVatCustomFit(tf.keras.Model):
+class ModelVatCustomFit(keras.Model):
     def __init__(self, inputs, outputs, method, epsilon, alpha, xi):
         super(ModelVatCustomFit, self).__init__(inputs=inputs, outputs=outputs)
         self.method = method
@@ -136,7 +139,6 @@ class ModelVatCustomFit(tf.keras.Model):
             A numpy array of class predictions.
         """
         proba = self.predict(x, batch_size=batch_size, verbose=verbose)
-
         if proba.shape[-1] > 1:
             return proba.argmax(axis=-1)
         else:

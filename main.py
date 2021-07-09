@@ -52,7 +52,15 @@ def configHyperModelFactory(method, input_dim, classes_count):
         layer3 = layers.Dense(32, activation="relu", name="layer3")(layer2)
         layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
         layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
-        model = ModelVatCustomFit(inputs=in_layer, outputs=layer5, method=method, epsilon=epsilon, alpha=alpha, xi=xi)
+        model = ModelVatCustomFit(
+            inputs=in_layer,
+            outputs=layer5,
+
+            method=method,
+            epsilon=epsilon,
+            alpha=alpha,
+            xi=xi
+        )
         model.compile(loss=losses.CategoricalCrossentropy(), optimizer=optimizers.Adam(learning_rate=1e-3))
         return model
 
@@ -80,7 +88,14 @@ def main(method):
         X_train, X_test = data[train_indexes, :], data[test_indexes, :]
         y_train, y_test = labels[train_indexes], labels[test_indexes]
         model = KerasClassifier(build_fn=model_factory, epochs=5, batch_size=32, verbose=0)
-        clf = RandomizedSearchCV(model, distributions, random_state=0, cv=CV_INNER_N_ITERATIONS)
+        clf = RandomizedSearchCV(
+            model,
+            param_distributions=distributions,
+            n_iter=50,
+            scoring='accuracy',
+            cv=CV_INNER_N_ITERATIONS,
+            random_state=0
+        )
         result = clf.fit(X_train, y_train)
         best_model = result.best_estimator_
         y_predict = best_model.predict(X_test)
@@ -106,8 +121,16 @@ def some_test(method):
     model_factory = configHyperModelFactory(method, input_dim, classes_count)
     model = KerasClassifier(build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
     # model.fit(X_train, y_train)
-    clf = RandomizedSearchCV(model, distributions, random_state=0, scoring='accuracy', cv=CV_INNER_N_ITERATIONS)
+    clf = RandomizedSearchCV(
+        model,
+        param_distributions=distributions,
+        n_iter=1,
+        scoring='accuracy',
+        cv=CV_INNER_N_ITERATIONS,
+        random_state=0
+    )
     result = clf.fit(X_train, y_train)
+    print(result.refit_time_, result.best_estimator_.model.train_time)
     # best_model = result.best_estimator_
     # y_predict = best_model.predict(X_test)
     # y_predict_proba = best_model.predict_proba(X_test)

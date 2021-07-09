@@ -1,11 +1,10 @@
 import time
 import keras
-from keras import losses
+from keras import losses, metrics
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import layers
 
-kl_func_loss = tf.keras.losses.KLDivergence()
+kl_func_loss = losses.KLDivergence()
 
 
 def kl_divergence(p, q):
@@ -64,7 +63,10 @@ class ModelVatCustomFit(keras.Model):
             use_multiprocessing=False):
         assert len(x.shape) == 2 and len(y.shape) == 2
         assert x.shape[0] == y.shape[0]
+
         optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
+        train_acc_metric = metrics.CategoricalAccuracy()
+
         start_time = time.time()
         for epoch in range(epochs):
             print("\nStart of epoch %d" % (epoch,))
@@ -83,19 +85,23 @@ class ModelVatCustomFit(keras.Model):
                 optimizer.apply_gradients(zip(grads, self.trainable_weights))
 
                 # Update training metric.
-                # train_acc_metric.update_state(y_batch_train, logits)
+                train_acc_metric.update_state(y_batch_train, y_pred)
 
                 # Log every 200 batches.
-                if step % 200 == 0:
-                    print(f"Seen so far: {step + 1} batches")
+                # if step % 200 == 0:
+                #     print(f"Seen so far: {step + 1} batches")
 
             # Display metrics at the end of each epoch.
-            # train_acc = train_acc_metric.result()
+            train_acc = train_acc_metric.result()
             # print("Training acc over epoch: %.4f" % (float(train_acc),))
             # Reset training metrics at the end of each epoch
-            # train_acc_metric.reset_states()
+            train_acc_metric.reset_states()
 
-            print(f"Epoch {epoch}/{epochs} done, loss = {loss_value} took %.2fs" % (time.time() - start_time_epoch))
+            print(
+                f"Epoch {epoch + 1}/{epochs} done, loss={loss_value}, "
+                f"train acc={train_acc * 100:.2f}%%, "
+                f"took {(time.time() - start_time_epoch):.2fs}"
+            )
 
         self.train_time = time.time() - start_time
         print("Time taken: %.2fs" % self.train_time)

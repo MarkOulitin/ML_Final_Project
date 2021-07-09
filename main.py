@@ -68,7 +68,7 @@ def main(method):
         clf = RandomizedSearchCV(model, distributions, random_state=0, cv=CV_INNER_N_ITERATIONS)
         result = clf.fit(X_train, y_train)
         best_model = result.best_estimator_
-        best_model.model.__class__ = ModelVatCustomFit
+        # best_model.model.__class__ = ModelVatCustomFit
         train_time = best_model.model.train_time
         y_predict = best_model.predict(X_test)
         TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, [])

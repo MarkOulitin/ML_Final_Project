@@ -36,6 +36,7 @@ class ModelVatCustomFit(keras.Model):
         self.epsilon = epsilon
         self.alpha = alpha
         self.xi = xi
+        self.train_time = None
         self.cross_entropy = losses.CategoricalCrossentropy()
 
     def get_config(self):
@@ -96,7 +97,8 @@ class ModelVatCustomFit(keras.Model):
 
             print(f"Epoch {epoch}/{epochs} done, loss = {loss_value} took %.2fs" % (time.time() - start_time_epoch))
 
-        print("Time taken: %.2fs" % (time.time() - start_time))
+        self.train_time = time.time() - start_time
+        print("Time taken: %.2fs" % self.train_time)
 
     def compute_loss(self, y_true, y_pred, y_hat_vadvs):
         if self.method == 'OUR':

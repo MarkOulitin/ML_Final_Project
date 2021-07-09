@@ -123,3 +123,21 @@ class ModelVatCustomFit(keras.Model):
                 grad = d_tape.gradient(dist, [d])[0]
                 d = tf.stop_gradient(grad)
         return epsilon * get_normalized_vector(d)
+
+    def predict_classes(self, x, batch_size=32, verbose=0):
+        """Generate class predictions for the input samples.
+        The input samples are processed batch by batch.
+        Args:
+            x: input data, as a Numpy array or list of Numpy arrays
+                (if the model has multiple inputs).
+            batch_size: integer.
+            verbose: verbosity mode, 0 or 1.
+        Returns:
+            A numpy array of class predictions.
+        """
+        proba = self.predict(x, batch_size=batch_size, verbose=verbose)
+
+        if proba.shape[-1] > 1:
+            return proba.argmax(axis=-1)
+        else:
+            return (proba > 0.5).astype('int32')

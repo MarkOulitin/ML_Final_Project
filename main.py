@@ -102,8 +102,9 @@ def some_test(method):
                          epsilon=uniform(loc=1e-6, scale=2e-3))
     model_factory = configHyperModelFactory(method, input_dim, classes_count)
     model = KerasClassifier(build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
-    # clf = RandomizedSearchCV(model, distributions, random_state=0, scoring='accuracy', cv=CV_INNER_N_ITERATIONS)
-    result = model.fit(X_train, y_train)
+    # model.fit(X_train, y_train)
+    clf = RandomizedSearchCV(model, distributions, random_state=0, scoring='accuracy', cv=CV_INNER_N_ITERATIONS)
+    result = clf.fit(X_train, y_train)
     # best_model = result.best_estimator_
     # y_predict = best_model.predict(X_test)
     # y_predict_proba = best_model.predict_proba(X_test)

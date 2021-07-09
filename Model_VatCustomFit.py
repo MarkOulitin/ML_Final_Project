@@ -28,7 +28,7 @@ def split_to_batches(x, y, batch_size):
         yield tf.convert_to_tensor(x_batch_train), tf.convert_to_tensor(y_batch_train)
 
 
-class ModelVatCustomFit(keras.Model):
+class ModelVatCustomFit(tf.keras.Model):
     def __init__(self, inputs, outputs, method, epsilon, alpha, xi):
         super(ModelVatCustomFit, self).__init__(inputs=inputs, outputs=outputs)
         self.method = method

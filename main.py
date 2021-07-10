@@ -20,6 +20,7 @@ from Datasets import datasets_names
 
 CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
+METRIC_AVERAGE = 'macro'
 
 
 # taken from https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
@@ -80,12 +81,22 @@ def compute_tpr_fpr_acc(y_true, y_pred, average):
 def configHyperModelFactory(method, input_dim, classes_count):
     def buildModel(epsilon=1e-3, alpha=1):
         xi = 1e-6
+        if classes_count > 2:
+            out_units_count = classes_count
+            base_loss = losses.CategoricalCrossentropy()
+            activation = 'softmax'
+        else:
+            out_units_count = 1
+            base_loss = losses.BinaryCrossentropy()
+            activation = 'sigmoid'
+        optimizer = optimizers.Adam(learning_rate=1e-3)
+
         in_layer = layers.Input(shape=(input_dim,))
         layer1 = layers.Dense(32, activation="relu", name="layer1")(in_layer)
         layer2 = layers.Dense(32, activation="relu", name="layer2")(layer1)
         layer3 = layers.Dense(32, activation="relu", name="layer3")(layer2)
         layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
-        layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
+        layer5 = layers.Dense(out_units_count, activation=activation, name="layer5")(layer4)
         model = ModelVatCustomFit(
             inputs=in_layer,
             outputs=layer5,
@@ -95,7 +106,7 @@ def configHyperModelFactory(method, input_dim, classes_count):
             alpha=alpha,
             xi=xi
         )
-        model.compile(loss=losses.CategoricalCrossentropy(), optimizer=optimizers.Adam(learning_rate=1e-3))
+        model.compile(loss=base_loss, optimizer=optimizer)
         return model
 
     return buildModel
@@ -163,19 +174,29 @@ def some_test(method):
     # best_model = model
     y_predict = best_model.predict(X_test)
     y_predict_proba = best_model.predict_proba(X_test)
+
     report_performance(data, y_predict, y_predict_proba, y_test, best_model, classes_count)
 
 
 def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, classes_count):
     y_test_one_hot = keras.utils.to_categorical(y_test)
-    metrics_average = 'binary' if classes_count == 2 else 'macro'
+    if classes_count == 2:
+        metrics_average = 'binary'
+        y_positive_proba = y_predict_proba[:, 1]
+    else:
+        metrics_average = METRIC_AVERAGE
 
     TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, average=metrics_average)
-    AUC_ROC = roc_auc_score(y_test, y_predict_proba, average=metrics_average, multi_class='ovo')
 
-    # average here cannot be 'binary' since we never give it input it perceives as binary.
-    # in our case, it will perceive it as multi-label.
-    AUC_Precision_Recall = average_precision_score(y_test_one_hot, y_predict_proba, average='macro')
+    if classes_count == 2:
+        # average cannot be binary here since it raises an exception
+        AUC_ROC = roc_auc_score(y_test, y_positive_proba, average=METRIC_AVERAGE, multi_class='ovo')
+        AUC_Precision_Recall = average_precision_score(y_test, y_positive_proba, average=METRIC_AVERAGE)
+    else:
+        AUC_ROC = roc_auc_score(y_test, y_predict_proba, average=METRIC_AVERAGE, multi_class='ovo')
+
+        # in our case, it will perceive it as multi-label.
+        AUC_Precision_Recall = average_precision_score(y_test_one_hot, y_predict_proba, average=METRIC_AVERAGE)
 
     train_time = best_model.model.train_time
     inference_time = calculate_inference_time(dataset, best_model)

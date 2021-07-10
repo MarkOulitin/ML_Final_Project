@@ -11,7 +11,7 @@ from tensorflow.keras import layers, losses, optimizers
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 
 from sklearn.model_selection import train_test_split, KFold, RandomizedSearchCV
-from sklearn.metrics import roc_auc_score, precision_score, confusion_matrix, average_precision_score
+from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, accuracy_score
 from scipy.stats import uniform
 
 from Model_VatCustomFit import ModelVatCustomFit
@@ -21,64 +21,96 @@ from utils import save_to_dict, create_dict, save_to_csv, setup, merge_results
 
 CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
+METRIC_AVERAGE = 'macro'
 
 
 # taken from https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
-def compute_tpr_fpr_acc(y_true, y_pred):
-    conf_mat = confusion_matrix(y_true, y_pred)
-    FP = conf_mat.sum(axis=0) - np.diag(conf_mat)
-    FN = conf_mat.sum(axis=1) - np.diag(conf_mat)
-    TP = np.diag(conf_mat)
-    TN = conf_mat.sum() - (FP + FN + TP)
+def compute_tpr_fpr_acc(y_true, y_pred, average):
+    if average != 'micro' and average != 'macro' and average != 'binary':
+        raise ValueError(f'invalid average argument \'{average}\'')
 
-    FP = FP.sum()
-    FN = FN.sum()
-    TP = TP.sum()
-    TN = TN.sum()
+    conf_mat = confusion_matrix(y_true, y_pred)
+    diag = np.diag(conf_mat)
+    all_sum = conf_mat.sum()
+
+    if average == 'binary':
+        if conf_mat.shape != (2, 2):
+            raise ValueError(f'binary average requested for non-binary confusion matrix ({conf_mat.shape})')
+
+        FP = conf_mat[0, 1]
+        TP = conf_mat[1, 1]
+        FN = conf_mat[1, 0]
+        TN = conf_mat[0, 0]
+    else:
+        FP = conf_mat.sum(axis=0) - diag
+        FN = conf_mat.sum(axis=1) - diag
+        TP = diag
+        TN = all_sum - (FP + FN + TP)
+
+    # print(conf_mat)
+    # print(f'FP {FP}, {FP.sum()}')
+    # print(f'FN {FN}, {FN.sum()}')
+    # print(f'TP {TP}, {TP.sum()}')
+    # print(f'TN {TN}, {TN.sum()}')
+    if average == 'micro':
+        FP = FP.sum()
+        FN = FN.sum()
+        TP = TP.sum()
+        TN = TN.sum()
+
     # True positive rate
     TPR = TP / (TP + FN)
     # False positive rate
     FPR = FP / (FP + TN)
-    # Overall accuracy
-    ACC = (TP + TN) / (TP + FP + FN + TN)
-
     PRECISION = TP / (TP + FP)
+
+    if average == 'macro':
+        TPR = np.average(TPR)
+        FPR = np.average(FPR)
+        PRECISION = np.average(PRECISION)
+
+    if average == 'micro':
+        ACC = TP / all_sum
+    elif average == 'macro':
+        ACC = TP.sum() / all_sum
+    else:
+        ACC = (TP + TN) / all_sum
 
     return TPR, FPR, ACC, PRECISION
 
 
-def configHyperModelFactory(method, input_dim, classes_count):
-    def build_Dropout_Model(dropout_rate=0.2):
-        in_layer = layers.Input(shape=(input_dim,))
-        layer1 = layers.Dense(32, activation="relu", name="layer1")(in_layer)
+def buildLayers(in_layer, dropout_rate=0.5, isDropout=False):
+    layer1 = layers.Dense(32, activation="relu", name="layer1")(in_layer)
+    if isDropout:
         layer1 = layers.Dropout(dropout_rate)(layer1)
-        layer2 = layers.Dense(32, activation="relu", name="layer2")(layer1)
+    layer2 = layers.Dense(32, activation="relu", name="layer2")(layer1)
+    if isDropout:
         layer2 = layers.Dropout(dropout_rate)(layer2)
-        layer3 = layers.Dense(32, activation="relu", name="layer3")(layer2)
+    layer3 = layers.Dense(32, activation="relu", name="layer3")(layer2)
+    if isDropout:
         layer3 = layers.Dropout(dropout_rate)(layer3)
-        layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
+    layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
+    if isDropout:
         layer4 = layers.Dropout(dropout_rate)(layer4)
-        layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
-        model = ModelVatCustomFit(
-            inputs=in_layer,
-            outputs=layer5,
+    return layer4
 
-            method='Dropout',
-            epsilon=None,
-            alpha=None,
-            xi=None
-        )
-        model.compile(loss=losses.CategoricalCrossentropy(), optimizer=optimizers.Adam(learning_rate=1e-3))
-        return model
 
-    def build_VAT_Model(epsilon=1e-3, alpha=1):
+def configHyperModelFactory(method, input_dim, classes_count):
+    def buildModel(epsilon=1e-3, alpha=1, dropout_rate=0.2):
         xi = 1e-6
+        if classes_count > 2:
+            out_units_count = classes_count
+            base_loss = losses.CategoricalCrossentropy()
+            activation = 'softmax'
+        else:
+            out_units_count = 1
+            base_loss = losses.BinaryCrossentropy()
+            activation = 'sigmoid'
+        optimizer = optimizers.Adam(learning_rate=1e-3)
+
         in_layer = layers.Input(shape=(input_dim,))
-        layer1 = layers.Dense(32, activation="relu", name="layer1")(in_layer)
-        layer2 = layers.Dense(32, activation="relu", name="layer2")(layer1)
-        layer3 = layers.Dense(32, activation="relu", name="layer3")(layer2)
-        layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
-        layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
+        layer4 = buildLayers(in_layer, dropout_rate, method == 'Dropout')
+        layer5 = layers.Dense(out_units_count, activation=activation, name="layer5")(layer4)
         model = ModelVatCustomFit(
             inputs=in_layer,
             outputs=layer5,
@@ -88,13 +120,10 @@ def configHyperModelFactory(method, input_dim, classes_count):
             alpha=alpha,
             xi=xi
         )
-        model.compile(loss=losses.CategoricalCrossentropy(), optimizer=optimizers.Adam(learning_rate=1e-3))
+        model.compile(loss=base_loss, optimizer=optimizer)
         return model
 
-    if method == 'Dropout':
-        return build_Dropout_Model
-    else:
-        return build_VAT_Model
+    return buildModel
 
 
 def calculate_inference_time(X, model):
@@ -149,7 +178,7 @@ def evaluate(dataset_name, method):
         best_model = result.best_estimator_
         y_predict = best_model.predict(X_test)
         y_predict_proba = best_model.predict_proba(X_test)
-        report = report_performance(data, y_predict, y_predict_proba, y_test, best_model)
+        report = report_performance(data, y_predict, y_predict_proba, y_test, best_model, classes_count)
         if method == 'Dropout':
             hp_values = 'dropout_rate = ' + str(np.round(result.best_params_['dropout_rate'], 3))
         else:
@@ -166,13 +195,29 @@ def some_test():
     evaluate('waveform-noise.csv', 'Dropout')
 
 
-def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, is_print=False):
-    TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict)
+def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, classes_count, is_print=False):
     y_test_one_hot = keras.utils.to_categorical(y_test)
-    AUC_ROC = roc_auc_score(y_test_one_hot, y_predict_proba, average='micro')
-    AUC_Precision_Recall = average_precision_score(y_test_one_hot, y_predict_proba, average='micro')
+    if classes_count == 2:
+        metrics_average = 'binary'
+        y_positive_proba = y_predict_proba[:, 1]
+    else:
+        metrics_average = METRIC_AVERAGE
+
+    TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, average=metrics_average)
+
+    if classes_count == 2:
+        # average cannot be binary here since it raises an exception
+        AUC_ROC = roc_auc_score(y_test, y_positive_proba, average=METRIC_AVERAGE, multi_class='ovo')
+        AUC_Precision_Recall = average_precision_score(y_test, y_positive_proba, average=METRIC_AVERAGE)
+    else:
+        AUC_ROC = roc_auc_score(y_test, y_predict_proba, average=METRIC_AVERAGE, multi_class='ovo')
+
+        # in our case, it will perceive it as multi-label.
+        AUC_Precision_Recall = average_precision_score(y_test_one_hot, y_predict_proba, average=METRIC_AVERAGE)
+
     train_time = best_model.model.train_time
     inference_time = calculate_inference_time(dataset, best_model)
+
     if is_print:
         print(f'Accuracy {ACC}',
               f'TPR {TPR}',
@@ -190,5 +235,4 @@ def statistic_test(data_filename):
 
 
 if __name__ == "__main__":
-    some_test()
-    # main()
+    some_test('blah')

@@ -24,7 +24,7 @@ def split_to_batches(x, y, batch_size):
     for step, batch_low_index in enumerate(range(0, end, batch_size)):
         batch_indices = indexes[batch_low_index:batch_low_index + batch_size - 1]
         x_batch_train = x[batch_indices, :]
-        y_batch_train = y[batch_indices, :]
+        y_batch_train = y[batch_indices]
 
         x_batch_train = tf.convert_to_tensor(x_batch_train)
         y_batch_train = tf.convert_to_tensor(y_batch_train)
@@ -66,10 +66,16 @@ class ModelVatCustomFit(keras.Model):
             max_queue_size=10,
             workers=1,
             use_multiprocessing=False):
-        assert len(x.shape) == 2 and len(y.shape) == 2
+        assert len(x.shape) == 2
         assert x.shape[0] == y.shape[0]
 
-        train_acc_metric = metrics.CategoricalAccuracy()
+        if len(y.shape) == 2:
+            train_acc_metric = metrics.CategoricalAccuracy()
+        elif len(y.shape) == 1:
+            train_acc_metric = metrics.BinaryAccuracy()
+        else:
+            assert False
+
         start_time = time.time()
         for epoch in range(epochs):
             # print("\nStart of epoch %d" % (epoch,))
@@ -86,6 +92,7 @@ class ModelVatCustomFit(keras.Model):
                         loss_value = self.compute_loss(y_batch_train, y_pred, y_hat_vadvs)
                 grads = tape.gradient(loss_value, self.trainable_weights)
                 self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
+                self.compiled_metrics.update_state(y, y_pred)
 
                 # Update training metric.
                 train_acc_metric.update_state(y_batch_train, y_pred)

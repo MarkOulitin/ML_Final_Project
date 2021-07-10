@@ -181,11 +181,11 @@ def evaluate(dataset_name, method):
         performance = create_dict(dataset_name, method)
         X_train, X_test = data[train_indexes, :], data[test_indexes, :]
         y_train, y_test = labels[train_indexes], labels[test_indexes]
-        model = KerasClassifierOur(num_classes=classes_count, build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
+        model = KerasClassifierOur(num_classes=classes_count, build_fn=model_factory, epochs=10, batch_size=32, verbose=0)
         clf = RandomizedSearchCV(
             model,
             param_distributions=distributions,
-            n_iter=1,
+            n_iter=50,
             scoring='accuracy',
             cv=StratifiedKFold(n_splits=CV_INNER_N_ITERATIONS),
             random_state=0

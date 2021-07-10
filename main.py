@@ -1,5 +1,6 @@
 import os
 import time
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -153,15 +154,15 @@ def calculate_inference_time(X, model):
     return time.time() - start_time
 
 
-def main():
+def main(method):
     setup()
     datasets_names = get_datasets_names()
-    methods = ['Article', 'OUR', 'Dropout']
+    # methods = ['Article', 'OUR', 'Dropout']
     amount_of_datasets = len(datasets_names)
     for iteration, dataset_name in enumerate(datasets_names):
-        for method in methods:
-            evaluate(dataset_name, method)
-        print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
+        # for method in methods:
+        evaluate(dataset_name, method)
+    print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
     results_filename = 'Results.xlsx'
     # merge_results(results_filename)
     statistic_test(results_filename, len(datasets_names), len(methods))
@@ -288,6 +289,7 @@ def statistic_test(data_filename, amount_of_datasets, amount_of_algorithms):
 
 
 if __name__ == "__main__":
-    # device_name = "/cpu:0"
-    # with tf.device(device_name):
-    main()
+    if len(sys.argv) > 1:
+        main(sys.argv[1])
+    else:
+        print('Add argument => 1 = Article, 2 = OUR, 3 = Dropout')

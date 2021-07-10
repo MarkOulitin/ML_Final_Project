@@ -25,6 +25,8 @@ NaN = float('nan')
 
 CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
+EPOCHS = 10
+N_RANDOM_SEARCH_ITERS = 50
 METRIC_AVERAGE = 'macro'
 
 
@@ -165,29 +167,42 @@ def main():
     statistic_test(results_filename, len(datasets_names), len(methods))
 
 
-def evaluate(dataset_name, method):
+def evaluate(
+        dataset_name,
+        method,
+        n_cv_outer_splits=CV_OUTER_N_ITERATIONS,
+        n_cv_inner_splits=CV_INNER_N_ITERATIONS,
+        epochs=EPOCHS,
+        n_random_search_iters=N_RANDOM_SEARCH_ITERS
+):
     # performance = create_dict(dataset_name, method)
     data, labels, classes_count, input_dim = read_data(dataset_name)
     if method == 'Dropout':
-        distributions = dict(dropout_rate=uniform(loc=1e-6, scale=1-1e-6))
+        distributions = dict(dropout_rate=uniform(loc=1e-6, scale=1 - 1e-6))
     else:
         distributions = dict(alpha=np.linspace(0, 2, 101),
                              epsilon=uniform(loc=1e-6, scale=2e-3))
     model_factory = configHyperModelFactory(method, input_dim, classes_count)
-    outer_cv = StratifiedKFold(n_splits=CV_OUTER_N_ITERATIONS)
+    outer_cv = StratifiedKFold(n_splits=n_cv_outer_splits)
 
     print(f'Working on: {dataset_name} with Algo: {method}')
     for iteration, (train_indexes, test_indexes) in enumerate(outer_cv.split(data, labels)):
         performance = create_dict(dataset_name, method)
         X_train, X_test = data[train_indexes, :], data[test_indexes, :]
         y_train, y_test = labels[train_indexes], labels[test_indexes]
-        model = KerasClassifierOur(num_classes=classes_count, build_fn=model_factory, epochs=10, batch_size=32, verbose=0)
+        model = KerasClassifierOur(
+            num_classes=classes_count,
+            build_fn=model_factory,
+            epochs=epochs,
+            batch_size=32,
+            verbose=0
+        )
         clf = RandomizedSearchCV(
             model,
             param_distributions=distributions,
-            n_iter=50,
+            n_iter=n_random_search_iters,
             scoring='accuracy',
-            cv=StratifiedKFold(n_splits=CV_INNER_N_ITERATIONS),
+            cv=StratifiedKFold(n_splits=n_cv_inner_splits),
             random_state=0
         )
         result = clf.fit(X_train, y_train)
@@ -207,10 +222,22 @@ def evaluate(dataset_name, method):
     # save_to_csv(performance, dataset_name + "_" + method)
 
 
+def test_evaluate(dataset_name, method):
+    evaluate(
+        dataset_name,
+        method,
+        n_cv_outer_splits=2,
+        n_cv_inner_splits=2,
+        epochs=1,
+        n_random_search_iters=1
+    )
+
+
 def some_test():
     setup()
-    evaluate('waveform-noise.csv', 'Dropout')
-    evaluate('titanic.csv', 'Dropout')
+    method = 'Dropout'
+    test_evaluate('mfeat-karhunen.csv', method)
+    test_evaluate('titanic.csv', method)
 
 
 def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, classes_count, is_print=False):
@@ -221,7 +248,8 @@ def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, 
     else:
         metrics_average = METRIC_AVERAGE
 
-    TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, labels=best_model.classes_, average=metrics_average)
+    TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, labels=best_model.classes_,
+                                                   average=metrics_average)
 
     if classes_count == 2:
         # average cannot be binary here since it raises an exception

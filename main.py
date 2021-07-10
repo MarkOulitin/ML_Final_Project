@@ -186,7 +186,7 @@ def evaluate(dataset_name, method):
             param_distributions=distributions,
             n_iter=1,
             scoring='accuracy',
-            cv=CV_INNER_N_ITERATIONS,
+            cv=StratifiedKFold(n_splits=CV_INNER_N_ITERATIONS),
             random_state=0
         )
         result = clf.fit(X_train, y_train)

@@ -8,13 +8,14 @@ from tensorflow.python.keras.wrappers.scikit_learn import BaseWrapper, KerasClas
 class KerasClassifierOur(KerasClassifier):
     def __init__(self, num_classes, build_fn=None, **kwargs):
         super(KerasClassifierOur, self).__init__(build_fn=build_fn, **kwargs)
+        self._estimator_type = "classifier"
         self.num_classes = num_classes
         self.model = None
         self.sk_params['num_classes'] = num_classes
 
     def fit(self, x, y, **kwargs):
-        self._check_y(y)
         self._setup_classes()
+        y = self._check_y(y)
         if self.num_classes > 2:
             y = to_categorical(y)
         return BaseWrapper.fit(self, x, y, **kwargs)
@@ -25,8 +26,8 @@ class KerasClassifierOur(KerasClassifier):
 
     def _check_y(self, y):
         if len(y.shape) == 2 and y.shape[1] > 1:
-            pass
+            return y
         elif (len(y.shape) == 2 and y.shape[1] == 1) or len(y.shape) == 1:
-            pass
+            return np.searchsorted(self.classes_, y)
         else:
             raise ValueError('Invalid shape for y: ' + str(y.shape))

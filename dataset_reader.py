@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from sklearn.model_selection import train_test_split
+from pprint import pprint
 
 dataset_dir = './classification_datasets/'
 
@@ -30,7 +31,6 @@ def split_to_data_and_target(df: pd.DataFrame):
     return X, y
 
 
-
 def preprocessing(df):
     # print(list(df.columns.values), df.shape[0])
     X, y = split_to_data_and_target(df)
@@ -50,22 +50,31 @@ def read_data(filename):
     return X, y, classes_count, input_dim
 
 
-if __name__ == '__main__':
-    read_data('waveform-noise.csv')
-
-
 def get_files():
-    count = 0
+    datasets = []
     for filename in os.listdir(dataset_dir):
-        if fetch_dataset_by_data(filename):
-            count += 1
-    print(f'total {count}')
+        dataset = fetch_dataset_by_data(filename)
+        if dataset is not None:
+            datasets.append(dataset)
+
+    def compare_dataset_by_size(d):
+        return d[1]
+
+    datasets.sort(key=compare_dataset_by_size)
+    dataset_names = list(map(lambda d: d[0], datasets))
+    top_20 = dataset_names[:20]
+    print(f'Total {len(top_20)}')
+    pprint(top_20)
 
 
 def fetch_dataset_by_data(filename):
     df = pd.read_csv(dataset_dir + filename)
     types = df.dtypes[df.dtypes == 'float64']
     if len(types) == (len(df.dtypes) - 1) and len(df.index) > 1000:
-        print(filename)
-        return True
-    return False
+        return filename, len(df.index)
+    return None
+
+
+if __name__ == '__main__':
+    # read_data('waveform-noise.csv')
+    get_files()

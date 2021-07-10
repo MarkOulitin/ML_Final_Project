@@ -22,7 +22,7 @@ def split_to_batches(x, y, batch_size):
     end = batch_size * n_batches
     np.random.shuffle(indexes)
     for step, batch_low_index in enumerate(range(0, end, batch_size)):
-        batch_indices = indexes[batch_low_index:batch_low_index + batch_size - 1]
+        batch_indices = indexes[batch_low_index:batch_low_index + batch_size]
         x_batch_train = x[batch_indices, :]
         y_batch_train = y[batch_indices]
 
@@ -43,7 +43,7 @@ class ModelVatCustomFit(keras.Model):
     def get_config(self):
         pass
 
-    # code inspired from
+    # code adopted from
     # https://keras.io/guides/writing_a_training_loop_from_scratch
     # https://keras.io/guides/customizing_what_happens_in_fit/
     def fit(self,
@@ -124,7 +124,7 @@ class ModelVatCustomFit(keras.Model):
             R_vadv = kl_divergence(y_pred, y_hat_vadvs)
         return self.compiled_loss(y_true, y_pred) + self.alpha * R_vadv
 
-    # inspired from https://github.com/takerum/vat_tf/blob/c5125d267531ce0f10b2238cf95604d287de63c8/vat.py#L39
+    # code adopted from https://github.com/takerum/vat_tf/blob/c5125d267531ce0f10b2238cf95604d287de63c8/vat.py#L39
     def compute_rvadvs(self, x, y, epsilon, xi):
         d = tf.random.normal(shape=tf.shape(x))
         num_of_iterations = 1
@@ -138,7 +138,7 @@ class ModelVatCustomFit(keras.Model):
                 d = tf.stop_gradient(grad)
         return epsilon * get_normalized_vector(d)
 
-    # taken from https://github.com/tensorflow/tensorflow/blob/a4dfb8d1a71385bd6d122e4f27f86dcebb96712d/tensorflow/python/keras/engine/sequential.py#L441
+    # code adopted from https://github.com/tensorflow/tensorflow/blob/a4dfb8d1a71385bd6d122e4f27f86dcebb96712d/tensorflow/python/keras/engine/sequential.py#L441
     def predict_classes(self, x, batch_size=32, verbose=0):
         """Generate class predictions for the input samples.
         The input samples are processed batch by batch.

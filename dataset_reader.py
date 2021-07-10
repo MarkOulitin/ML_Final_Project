@@ -76,5 +76,5 @@ def fetch_dataset_by_data(filename):
 
 
 if __name__ == '__main__':
-    # read_data('waveform-noise.csv')
-    get_files()
+    read_data('waveform-noise.csv')
+    # get_files()

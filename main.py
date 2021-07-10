@@ -17,7 +17,7 @@ from scipy.stats import uniform
 from Model_VatCustomFit import ModelVatCustomFit
 from dataset_reader import read_data
 from Datasets import get_datasets_names
-from utils import save_to_dict, create_dict, save_to_csv
+from utils import save_to_dict, create_dict, save_to_csv, setup
 
 CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
@@ -89,6 +89,7 @@ def main():
         for method in methods:
             evaluate(dataset_name, method)
 
+
 def evaluate(dataset_name, method):
     performance = create_dict(dataset_name, method)
     data, labels, classes_count, input_dim = read_data(dataset_name)
@@ -123,8 +124,10 @@ def evaluate(dataset_name, method):
 
 
 def some_test(method):
-    performance = create_dict()
-    data, labels, classes_count, input_dim = read_data('waveform-noise.csv')
+    setup()
+    dataset_name = 'waveform-noise.csv'
+    performance = create_dict(dataset_name, method)
+    data, labels, classes_count, input_dim = read_data(dataset_name)
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2)
     distributions = dict(alpha=np.linspace(0, 2, 101),
                          epsilon=uniform(loc=1e-6, scale=2e-3))
@@ -165,6 +168,7 @@ def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, 
               f'TRAIN TIME {train_time}',
               f'INFERENCE TIME FOR 1000 INSTANCES {inference_time}', sep="\n")
     return TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time
+
 
 
 if __name__ == "__main__":

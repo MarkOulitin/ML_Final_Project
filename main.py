@@ -186,13 +186,14 @@ def evaluate(dataset_name, method):
             eps_str = 'epsilon = ' + str(np.round(result.best_params_['epsilon'], 3))
             hp_values = alpha_str + '\n' + eps_str
         save_to_dict(performance, iteration + 1, hp_values, *report)
-        print(f'Done {iteration + 1} iteration')
+        print(f'Dataset {dataset_name} -- Done {iteration + 1} iteration')
     save_to_csv(performance, dataset_name + "_" + method)
 
 
 def some_test():
     setup()
     evaluate('waveform-noise.csv', 'Dropout')
+    evaluate('titanic.csv', 'Dropout')
 
 
 def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, classes_count, is_print=False):
@@ -235,4 +236,4 @@ def statistic_test(data_filename):
 
 
 if __name__ == "__main__":
-    some_test('blah')
+    some_test()

@@ -61,17 +61,19 @@ def get_files():
         return d[1]
 
     datasets.sort(key=compare_dataset_by_size)
-    dataset_names = list(map(lambda d: d[0], datasets))
-    top_20 = dataset_names[:20]
-    print(f'Total {len(top_20)}')
-    pprint(top_20)
+    datasets_top_20 = datasets[:20]
+    dataset_names = list(map(lambda d: d[0], datasets_top_20))
+    # pprint(datasets_top_20)
+    print(f'Total {len(dataset_names)}')
+    pprint(dataset_names)
 
 
 def fetch_dataset_by_data(filename):
     df = pd.read_csv(dataset_dir + filename)
     types = df.dtypes[df.dtypes == 'float64']
     if len(types) == (len(df.dtypes) - 1) and len(df.index) > 1000:
-        return filename, len(df.index)
+        class_count = df[df.columns[-1]].nunique()
+        return filename, len(df.index), class_count
     return None
 
 

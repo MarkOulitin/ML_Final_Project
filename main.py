@@ -15,6 +15,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, Randomize
 from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, accuracy_score
 from scipy.stats import uniform
 
+from KerasClassifierOur import KerasClassifierOur
 from Model_VatCustomFit import ModelVatCustomFit
 from dataset_reader import read_data
 from Datasets import get_datasets_names
@@ -33,7 +34,7 @@ def safe_div(numerator, denominator, default):
     return numerator / denominator
 
 
-# taken from https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
+# code adopted from https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
 def compute_tpr_fpr_acc(y_true, y_pred, labels, average):
     if average != 'micro' and average != 'macro' and average != 'binary':
         raise ValueError(f'invalid average argument \'{average}\'')
@@ -179,7 +180,7 @@ def evaluate(dataset_name, method):
     for iteration, (train_indexes, test_indexes) in enumerate(outer_cv.split(data, labels)):
         X_train, X_test = data[train_indexes, :], data[test_indexes, :]
         y_train, y_test = labels[train_indexes], labels[test_indexes]
-        model = KerasClassifier(build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
+        model = KerasClassifierOur(num_classes=classes_count, build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
         clf = RandomizedSearchCV(
             model,
             param_distributions=distributions,

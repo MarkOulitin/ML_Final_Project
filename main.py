@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import tensorflow as tf
+from tensorflow.python.client import device_lib
 from tensorflow import keras
 from tensorflow.keras import layers, losses, optimizers
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 
-from sklearn.model_selection import train_test_split, KFold, RandomizedSearchCV
+from sklearn.model_selection import train_test_split, StratifiedKFold, RandomizedSearchCV
 from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, accuracy_score
 from scipy.stats import uniform
 
@@ -159,7 +160,7 @@ def main():
             evaluate(dataset_name, method)
         print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
     results_filename = 'Results.xlsx'
-    merge_results(results_filename)
+    # merge_results(results_filename)
     statistic_test(results_filename)
 
 
@@ -172,7 +173,7 @@ def evaluate(dataset_name, method):
         distributions = dict(alpha=np.linspace(0, 2, 101),
                              epsilon=uniform(loc=1e-6, scale=2e-3))
     model_factory = configHyperModelFactory(method, input_dim, classes_count)
-    outer_cv = KFold(n_splits=CV_OUTER_N_ITERATIONS)
+    outer_cv = StratifiedKFold(n_splits=CV_OUTER_N_ITERATIONS)
 
     print(f'Working on: {dataset_name} with Algo: {method}')
     for iteration, (train_indexes, test_indexes) in enumerate(outer_cv.split(data)):
@@ -251,9 +252,11 @@ def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, 
     return TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time
 
 
-def statistic_test(data_filename):
+def statistic_test(data_filename, amount_of_datasets, amount_of_algorithms):
     print('No yet implemented')
 
 
 if __name__ == "__main__":
-    main()
+    device_name = "/cpu:0"
+    with tf.device(device_name):
+        main()

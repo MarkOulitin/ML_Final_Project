@@ -260,6 +260,6 @@ def statistic_test(data_filename, amount_of_datasets, amount_of_algorithms):
 
 
 if __name__ == "__main__":
-    device_name = "/cpu:0"
-    with tf.device(device_name):
-        main()
+    # device_name = "/cpu:0"
+    # with tf.device(device_name):
+    main()

@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from pathlib import Path
 
 
 def save_to_dict(dict, iteration, hp_values, TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time):
@@ -38,7 +39,12 @@ results_dir = 'Results'
 def save_to_csv(dict, filename):
     global results_dir
     df = pd.DataFrame.from_dict(dict)
-    df.to_csv(results_dir + '/' + filename + '.csv', index=False)
+    file_path = results_dir + '/' + filename + '.csv'
+    result_file = Path(file_path)
+    if result_file.is_file():
+        df.to_csv(file_path, mode='a', index=False)
+    else:
+        df.to_csv(file_path, index=False)
 
 
 def setup():

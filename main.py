@@ -199,9 +199,10 @@ def evaluate(dataset_name, method):
             alpha_str = 'alpha = ' + str(np.round(result.best_params_['alpha'], 3))
             eps_str = 'epsilon = ' + str(np.round(result.best_params_['epsilon'], 3))
             hp_values = alpha_str + '\n' + eps_str
-        save_to_dict(performance, iteration + 1, hp_values, *report)
+        save_to_csv(performance, dataset_name + "_" + method)
+        # save_to_dict(performance, iteration + 1, hp_values, *report)
         print(f'Dataset {dataset_name} -- Done {iteration + 1} iteration')
-    save_to_csv(performance, dataset_name + "_" + method)
+    # save_to_csv(performance, dataset_name + "_" + method)
 
 
 def some_test():

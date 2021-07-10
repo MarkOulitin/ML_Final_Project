@@ -176,7 +176,7 @@ def evaluate(dataset_name, method):
     outer_cv = StratifiedKFold(n_splits=CV_OUTER_N_ITERATIONS)
 
     print(f'Working on: {dataset_name} with Algo: {method}')
-    for iteration, (train_indexes, test_indexes) in enumerate(outer_cv.split(data)):
+    for iteration, (train_indexes, test_indexes) in enumerate(outer_cv.split(data, labels)):
         X_train, X_test = data[train_indexes, :], data[test_indexes, :]
         y_train, y_test = labels[train_indexes], labels[test_indexes]
         model = KerasClassifier(build_fn=model_factory, epochs=10, batch_size=32, verbose=0)

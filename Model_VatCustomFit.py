@@ -22,7 +22,7 @@ def split_to_batches(x, y, batch_size):
     end = batch_size * n_batches
     np.random.shuffle(indexes)
     for step, batch_low_index in enumerate(range(0, end, batch_size)):
-        batch_indices = indexes[batch_low_index:batch_low_index + batch_size - 1]
+        batch_indices = indexes[batch_low_index:batch_low_index + batch_size]
         x_batch_train = x[batch_indices, :]
         y_batch_train = y[batch_indices]
 

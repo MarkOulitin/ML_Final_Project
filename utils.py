@@ -1,19 +1,21 @@
 import pandas as pd
 import os
 from pathlib import Path
+import numpy as np
 
 
-def save_to_dict(dict, iteration, hp_values, TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time):
+def save_to_dict(dict, iteration, hp_values, TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time,
+                 inference_time):
     dict['Hyper-Parameters Values'].append(hp_values)
     dict['Cross Validation [1-10]'].append(iteration)
-    dict['TPR'].append(TPR)
-    dict['FPR'].append(FPR)
-    dict['Accuracy'].append(ACC)
-    dict['Precision'].append(PRECISION)
-    dict['AUC ROC'].append(AUC_ROC)
-    dict['AUC Precision Recall'].append(AUC_Precision_Recall)
-    dict['Training Time'].append(train_time)
-    dict['Inference Time'].append(inference_time)
+    dict['TPR'].append(np.round(TPR, 3))
+    dict['FPR'].append(np.round(FPR, 3))
+    dict['Accuracy'].append(np.round(ACC, 3))
+    dict['Precision'].append(np.round(PRECISION, 3))
+    dict['AUC ROC'].append(np.round(AUC_ROC, 3))
+    dict['AUC Precision Recall'].append(np.round(AUC_Precision_Recall, 3))
+    dict['Training Time'].append(np.round(train_time, 3))
+    dict['Inference Time'].append(np.round(inference_time, 3))
 
 
 def create_dict(dataset_name, algorithm_name):
@@ -42,7 +44,7 @@ def save_to_csv(dict, filename):
     file_path = results_dir + '/' + filename + '.csv'
     result_file = Path(file_path)
     if result_file.is_file():
-        df.to_csv(file_path, mode='a', index=False)
+        df.to_csv(file_path, mode='a', index=False, header=False)
     else:
         df.to_csv(file_path, index=False)
 

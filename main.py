@@ -166,7 +166,7 @@ def main():
 
 
 def evaluate(dataset_name, method):
-    performance = create_dict(dataset_name, method)
+    # performance = create_dict(dataset_name, method)
     data, labels, classes_count, input_dim = read_data(dataset_name)
     if method == 'Dropout':
         distributions = dict(dropout_rate=uniform(loc=1e-6, scale=1-1e-6))
@@ -178,6 +178,7 @@ def evaluate(dataset_name, method):
 
     print(f'Working on: {dataset_name} with Algo: {method}')
     for iteration, (train_indexes, test_indexes) in enumerate(outer_cv.split(data, labels)):
+        performance = create_dict(dataset_name, method)
         X_train, X_test = data[train_indexes, :], data[test_indexes, :]
         y_train, y_test = labels[train_indexes], labels[test_indexes]
         model = KerasClassifierOur(num_classes=classes_count, build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
@@ -199,9 +200,9 @@ def evaluate(dataset_name, method):
         else:
             alpha_str = 'alpha = ' + str(np.round(result.best_params_['alpha'], 3))
             eps_str = 'epsilon = ' + str(np.round(result.best_params_['epsilon'], 3))
-            hp_values = alpha_str + '\n' + eps_str
+            hp_values = alpha_str + ', ' + eps_str
+        save_to_dict(performance, iteration + 1, hp_values, *report)
         save_to_csv(performance, dataset_name + "_" + method)
-        # save_to_dict(performance, iteration + 1, hp_values, *report)
         print(f'Dataset {dataset_name} -- Done {iteration + 1} iteration')
     # save_to_csv(performance, dataset_name + "_" + method)
 

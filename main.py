@@ -17,7 +17,7 @@ from scipy.stats import uniform
 from Model_VatCustomFit import ModelVatCustomFit
 from dataset_reader import read_data
 from Datasets import get_datasets_names
-from utils import save_to_dict, create_dict, save_to_csv, setup
+from utils import save_to_dict, create_dict, save_to_csv, setup, merge_results
 
 CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
@@ -48,7 +48,30 @@ def compute_tpr_fpr_acc(y_true, y_pred):
 
 
 def configHyperModelFactory(method, input_dim, classes_count):
-    def buildModel(epsilon=1e-3, alpha=1):
+    def build_Dropout_Model(dropout_rate=0.2):
+        in_layer = layers.Input(shape=(input_dim,))
+        layer1 = layers.Dense(32, activation="relu", name="layer1")(in_layer)
+        layer1 = layers.Dropout(dropout_rate)(layer1)
+        layer2 = layers.Dense(32, activation="relu", name="layer2")(layer1)
+        layer2 = layers.Dropout(dropout_rate)(layer2)
+        layer3 = layers.Dense(32, activation="relu", name="layer3")(layer2)
+        layer3 = layers.Dropout(dropout_rate)(layer3)
+        layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
+        layer4 = layers.Dropout(dropout_rate)(layer4)
+        layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
+        model = ModelVatCustomFit(
+            inputs=in_layer,
+            outputs=layer5,
+
+            method='Dropout',
+            epsilon=None,
+            alpha=None,
+            xi=None
+        )
+        model.compile(loss=losses.CategoricalCrossentropy(), optimizer=optimizers.Adam(learning_rate=1e-3))
+        return model
+
+    def build_VAT_Model(epsilon=1e-3, alpha=1):
         xi = 1e-6
         in_layer = layers.Input(shape=(input_dim,))
         layer1 = layers.Dense(32, activation="relu", name="layer1")(in_layer)
@@ -56,7 +79,6 @@ def configHyperModelFactory(method, input_dim, classes_count):
         layer3 = layers.Dense(32, activation="relu", name="layer3")(layer2)
         layer4 = layers.Dense(32, activation="relu", name="layer4")(layer3)
         layer5 = layers.Dense(classes_count, activation="softmax", name="layer5")(layer4)
-        # TODO if method is Dropout then add dropout
         model = ModelVatCustomFit(
             inputs=in_layer,
             outputs=layer5,
@@ -69,7 +91,10 @@ def configHyperModelFactory(method, input_dim, classes_count):
         model.compile(loss=losses.CategoricalCrossentropy(), optimizer=optimizers.Adam(learning_rate=1e-3))
         return model
 
-    return buildModel
+    if method == 'Dropout':
+        return build_Dropout_Model
+    else:
+        return build_VAT_Model
 
 
 def calculate_inference_time(X, model):
@@ -83,26 +108,32 @@ def calculate_inference_time(X, model):
 
 
 def main():
+    setup()
     datasets_names = get_datasets_names()
     methods = ['Article', 'OUR', 'Dropout']
-    for dataset_name in datasets_names:
+    amount_of_datasets = len(datasets_names)
+    for iteration, dataset_name in enumerate(datasets_names):
         for method in methods:
             evaluate(dataset_name, method)
+        print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
+    results_filename = 'Results.xlsx'
+    merge_results(results_filename)
+    statistic_test(results_filename)
 
 
 def evaluate(dataset_name, method):
     performance = create_dict(dataset_name, method)
     data, labels, classes_count, input_dim = read_data(dataset_name)
-    if method != 'Dropout':
+    if method == 'Dropout':
+        distributions = dict(dropout_rate=uniform(loc=1e-6, scale=1-1e-6))
+    else:
         distributions = dict(alpha=np.linspace(0, 2, 101),
                              epsilon=uniform(loc=1e-6, scale=2e-3))
-    else:
-        # TODO dropout rate
-        distributions = dict(alpha=np.linspace(0, 2, 101))
     model_factory = configHyperModelFactory(method, input_dim, classes_count)
     outer_cv = KFold(n_splits=CV_OUTER_N_ITERATIONS)
 
-    for train_indexes, test_indexes in outer_cv.split(data):
+    print(f'Working on: {dataset_name} with Algo: {method}')
+    for iteration, (train_indexes, test_indexes) in enumerate(outer_cv.split(data)):
         X_train, X_test = data[train_indexes, :], data[test_indexes, :]
         y_train, y_test = labels[train_indexes], labels[test_indexes]
         model = KerasClassifier(build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
@@ -119,36 +150,20 @@ def evaluate(dataset_name, method):
         y_predict = best_model.predict(X_test)
         y_predict_proba = best_model.predict_proba(X_test)
         report = report_performance(data, y_predict, y_predict_proba, y_test, best_model)
-        save_to_dict(performance, *report)
+        if method == 'Dropout':
+            hp_values = 'dropout_rate = ' + str(np.round(result.best_params_['dropout_rate'], 3))
+        else:
+            alpha_str = 'alpha = ' + str(np.round(result.best_params_['alpha'], 3))
+            eps_str = 'epsilon = ' + str(np.round(result.best_params_['epsilon'], 3))
+            hp_values = alpha_str + '\n' + eps_str
+        save_to_dict(performance, iteration + 1, hp_values, *report)
+        print(f'Done {iteration + 1} iteration')
     save_to_csv(performance, dataset_name + "_" + method)
 
 
-def some_test(method):
+def some_test():
     setup()
-    dataset_name = 'waveform-noise.csv'
-    performance = create_dict(dataset_name, method)
-    data, labels, classes_count, input_dim = read_data(dataset_name)
-    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2)
-    distributions = dict(alpha=np.linspace(0, 2, 101),
-                         epsilon=uniform(loc=1e-6, scale=2e-3))
-    model_factory = configHyperModelFactory(method, input_dim, classes_count)
-    model = KerasClassifier(build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
-    clf = RandomizedSearchCV(
-        model,
-        param_distributions=distributions,
-        n_iter=1,
-        scoring='accuracy',
-        cv=CV_INNER_N_ITERATIONS,
-        random_state=0
-    )
-    result = clf.fit(X_train, y_train)
-    # print(result.refit_time_, result.best_estimator_.model.train_time)
-    best_model = result.best_estimator_
-    y_predict = best_model.predict(X_test)
-    y_predict_proba = best_model.predict_proba(X_test)
-    report = report_performance(data, y_predict, y_predict_proba, y_test, best_model, is_print=True)
-    save_to_dict(performance, *report)
-    save_to_csv(performance, 'banana')
+    evaluate('waveform-noise.csv', 'Dropout')
 
 
 def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, is_print=False):
@@ -170,6 +185,10 @@ def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, 
     return TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time
 
 
+def statistic_test(data_filename):
+    print('No yet implemented')
+
 
 if __name__ == "__main__":
-    some_test('blah')
+    some_test()
+    # main()

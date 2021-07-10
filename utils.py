@@ -2,29 +2,33 @@ import pandas as pd
 import os
 
 
-def save_to_dict(dict, TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time):
+def save_to_dict(dict, iteration, hp_values, TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time):
+    dict['Hyper-Parameters Values'].append(hp_values)
+    dict['Cross Validation [1-10]'].append(iteration)
     dict['TPR'].append(TPR)
     dict['FPR'].append(FPR)
-    dict['ACC'].append(ACC)
-    dict['PRECISION'].append(PRECISION)
-    dict['AUC_ROC'].append(AUC_ROC)
-    dict['AUC_Precision_Recall'].append(AUC_Precision_Recall)
-    dict['train_time'].append(train_time)
-    dict['inference_time'].append(inference_time)
+    dict['Accuracy'].append(ACC)
+    dict['Precision'].append(PRECISION)
+    dict['AUC ROC'].append(AUC_ROC)
+    dict['AUC Precision Recall'].append(AUC_Precision_Recall)
+    dict['Training Time'].append(train_time)
+    dict['Inference Time'].append(inference_time)
 
 
 def create_dict(dataset_name, algorithm_name):
     output = dict()
     output['Dataset Name'] = dataset_name
     output['Algorithm Name'] = algorithm_name
+    output['Cross Validation [1-10]'] = []
+    output['Hyper-Parameters Values'] = []
     output['TPR'] = []
     output['FPR'] = []
-    output['ACC'] = []
-    output['PRECISION'] = []
-    output['AUC_ROC'] = []
-    output['AUC_Precision_Recall'] = []
-    output['train_time'] = []
-    output['inference_time'] = []
+    output['Accuracy'] = []
+    output['Precision'] = []
+    output['AUC ROC'] = []
+    output['AUC Precision Recall'] = []
+    output['Training Time'] = []
+    output['Inference Time'] = []
     return output
 
 

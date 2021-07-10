@@ -72,7 +72,7 @@ class ModelVatCustomFit(keras.Model):
         train_acc_metric = metrics.CategoricalAccuracy()
         start_time = time.time()
         for epoch in range(epochs):
-            print("\nStart of epoch %d" % (epoch,))
+            # print("\nStart of epoch %d" % (epoch,))
             start_time_epoch = time.time()
             for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
                 with tf.GradientTape() as tape:
@@ -100,15 +100,15 @@ class ModelVatCustomFit(keras.Model):
             # Reset training metrics at the end of each epoch
             train_acc_metric.reset_states()
 
-            print(
-                f"Epoch {epoch + 1}/{epochs} "
-                f"done, loss={loss_value}, "
-                f"train acc={train_acc * 100:.2f}%, "
-                f"took {(time.time() - start_time_epoch):.2f}s"
-            )
+            # print(
+            #     f"Epoch {epoch + 1}/{epochs} "
+            #     f"done, loss={loss_value}, "
+            #     f"train acc={train_acc * 100:.2f}%, "
+            #     f"took {(time.time() - start_time_epoch):.2f}s"
+            # )
 
         self.train_time = time.time() - start_time
-        print("Time taken: %.2fs" % self.train_time)
+        # print("Time taken: %.2fs" % self.train_time)
 
     def compute_loss(self, y_true, y_pred, y_hat_vadvs):
         if self.method == 'OUR':

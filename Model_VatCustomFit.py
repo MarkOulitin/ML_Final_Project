@@ -154,4 +154,5 @@ class ModelVatCustomFit(keras.Model):
         if proba.shape[-1] > 1:
             return proba.argmax(axis=-1)
         else:
+            proba = np.squeeze(proba, axis=-1)
             return (proba > 0.5).astype('int32')

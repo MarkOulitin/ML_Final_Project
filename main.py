@@ -19,19 +19,32 @@ from dataset_reader import read_data
 from Datasets import get_datasets_names
 from utils import save_to_dict, create_dict, save_to_csv, setup, merge_results
 
+NaN = float('nan')
+
 CV_OUTER_N_ITERATIONS = 10
 CV_INNER_N_ITERATIONS = 3
 METRIC_AVERAGE = 'macro'
 
 
+def safe_div(numerator, denominator, default):
+    if np.isscalar(denominator) and denominator == 0:
+        return default
+    return numerator / denominator
+
+
 # taken from https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
-def compute_tpr_fpr_acc(y_true, y_pred, average):
+def compute_tpr_fpr_acc(y_true, y_pred, labels, average):
     if average != 'micro' and average != 'macro' and average != 'binary':
         raise ValueError(f'invalid average argument \'{average}\'')
 
-    conf_mat = confusion_matrix(y_true, y_pred)
+    # print(f'labels: {labels}')
+    conf_mat = confusion_matrix(y_true, y_pred, labels=labels)
     diag = np.diag(conf_mat)
     all_sum = conf_mat.sum()
+
+    # print(f'y_true: {np.transpose(y_true[:10])}')
+    # print(f'y_pred: {np.transpose(y_pred[:10])}')
+    # print(conf_mat)
 
     if average == 'binary':
         if conf_mat.shape != (2, 2):
@@ -47,11 +60,11 @@ def compute_tpr_fpr_acc(y_true, y_pred, average):
         TP = diag
         TN = all_sum - (FP + FN + TP)
 
-    # print(conf_mat)
     # print(f'FP {FP}, {FP.sum()}')
     # print(f'FN {FN}, {FN.sum()}')
     # print(f'TP {TP}, {TP.sum()}')
     # print(f'TN {TN}, {TN.sum()}')
+
     if average == 'micro':
         FP = FP.sum()
         FN = FN.sum()
@@ -59,10 +72,10 @@ def compute_tpr_fpr_acc(y_true, y_pred, average):
         TN = TN.sum()
 
     # True positive rate
-    TPR = TP / (TP + FN)
+    TPR = safe_div(TP, (TP + FN), NaN)
     # False positive rate
-    FPR = FP / (FP + TN)
-    PRECISION = TP / (TP + FP)
+    FPR = safe_div(FP, (FP + TN), NaN)
+    PRECISION = safe_div(TP, (TP + FP), NaN)
 
     if average == 'macro':
         TPR = np.average(TPR)
@@ -204,12 +217,19 @@ def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, 
     else:
         metrics_average = METRIC_AVERAGE
 
-    TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, average=metrics_average)
+    TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, labels=best_model.classes_, average=metrics_average)
 
     if classes_count == 2:
         # average cannot be binary here since it raises an exception
-        AUC_ROC = roc_auc_score(y_test, y_positive_proba, average=METRIC_AVERAGE, multi_class='ovo')
-        AUC_Precision_Recall = average_precision_score(y_test, y_positive_proba, average=METRIC_AVERAGE)
+        if len(np.unique(y_test)) != 2:
+            AUC_ROC = NaN
+        else:
+            AUC_ROC = roc_auc_score(y_test, y_positive_proba, average=METRIC_AVERAGE, multi_class='ovo')
+
+        if not y_test.any():
+            AUC_Precision_Recall = NaN
+        else:
+            AUC_Precision_Recall = average_precision_score(y_test, y_positive_proba, average=METRIC_AVERAGE)
     else:
         AUC_ROC = roc_auc_score(y_test, y_predict_proba, average=METRIC_AVERAGE, multi_class='ovo')
 

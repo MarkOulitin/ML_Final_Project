@@ -161,7 +161,7 @@ def main():
         print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
     results_filename = 'Results.xlsx'
     # merge_results(results_filename)
-    statistic_test(results_filename)
+    statistic_test(results_filename, len(datasets_names), len(methods))
 
 
 def evaluate(dataset_name, method):

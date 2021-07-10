@@ -33,10 +33,7 @@ def split_to_data_and_target(df: pd.DataFrame):
     data = df.values
     X, y = data[:, :-1], data[:, -1]
     X = X.astype('float32')
-    if isinstance(y[0], str):
-        y = convert_enum_to_number(y)
-    else:
-        y = y.astype('int32')
+    y = convert_enum_to_number(y)
     return X, y
 
 

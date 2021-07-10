@@ -16,8 +16,12 @@ class KerasClassifierOur(KerasClassifier):
     def fit(self, x, y, **kwargs):
         self._setup_classes()
         y = self._check_y(y)
+
+        # note: This check is not compatible with a general model.
+        # In general, knowing whether the loss is categorical or not is required.
+        # In our case, we do use a categorical loss.
         if self.num_classes > 2:
-            y = to_categorical(y)
+            y = to_categorical(y, num_classes=self.num_classes)
         return BaseWrapper.fit(self, x, y, **kwargs)
 
     def _setup_classes(self):

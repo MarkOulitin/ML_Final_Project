@@ -11,7 +11,7 @@ from tensorflow.keras import layers, losses, optimizers
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 
 from sklearn.model_selection import train_test_split, KFold, RandomizedSearchCV
-from sklearn.metrics import roc_auc_score, precision_score, confusion_matrix, average_precision_score
+from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, accuracy_score
 from scipy.stats import uniform
 
 from Model_VatCustomFit import ModelVatCustomFit
@@ -23,34 +23,56 @@ CV_INNER_N_ITERATIONS = 3
 
 
 # taken from https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
-def compute_tpr_fpr_acc(y_true, y_pred):
+def compute_tpr_fpr_acc(y_true, y_pred, average):
+    if average != 'micro' and average != 'macro' and average != 'binary':
+        raise ValueError(f'invalid average argument \'{average}\'')
+
     conf_mat = confusion_matrix(y_true, y_pred)
     diag = np.diag(conf_mat)
     all_sum = conf_mat.sum()
 
-    FP = conf_mat.sum(axis=0) - diag
-    FN = conf_mat.sum(axis=1) - diag
-    TP = diag
-    TN = all_sum - (FP + FN + TP)
+    if average == 'binary':
+        if conf_mat.shape != (2, 2):
+            raise ValueError(f'binary average requested for non-binary confusion matrix ({conf_mat.shape})')
+
+        FP = conf_mat[0, 1]
+        TP = conf_mat[1, 1]
+        FN = conf_mat[1, 0]
+        TN = conf_mat[0, 0]
+    else:
+        FP = conf_mat.sum(axis=0) - diag
+        FN = conf_mat.sum(axis=1) - diag
+        TP = diag
+        TN = all_sum - (FP + FN + TP)
 
     # print(conf_mat)
     # print(f'FP {FP}, {FP.sum()}')
     # print(f'FN {FN}, {FN.sum()}')
     # print(f'TP {TP}, {TP.sum()}')
     # print(f'TN {TN}, {TN.sum()}')
-    FP = FP.sum()
-    FN = FN.sum()
-    TP = TP.sum()
-    TN = TN.sum()
+    if average == 'micro':
+        FP = FP.sum()
+        FN = FN.sum()
+        TP = TP.sum()
+        TN = TN.sum()
 
     # True positive rate
     TPR = TP / (TP + FN)
     # False positive rate
     FPR = FP / (FP + TN)
-    # Overall accuracy
-    ACC = TP / all_sum
-
     PRECISION = TP / (TP + FP)
+
+    if average == 'macro':
+        TPR = np.average(TPR)
+        FPR = np.average(FPR)
+        PRECISION = np.average(PRECISION)
+
+    if average == 'micro':
+        ACC = TP / all_sum
+    elif average == 'macro':
+        ACC = TP.sum() / all_sum
+    else:
+        ACC = (TP + TN) / all_sum
 
     return TPR, FPR, ACC, PRECISION
 
@@ -141,16 +163,23 @@ def some_test(method):
     # best_model = model
     y_predict = best_model.predict(X_test)
     y_predict_proba = best_model.predict_proba(X_test)
-    report_performance(data, y_predict, y_predict_proba, y_test, best_model)
+    report_performance(data, y_predict, y_predict_proba, y_test, best_model, classes_count)
 
 
-def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model):
-    TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict)
+def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, classes_count):
     y_test_one_hot = keras.utils.to_categorical(y_test)
-    AUC_ROC = roc_auc_score(y_test_one_hot, y_predict_proba)
-    AUC_Precision_Recall = average_precision_score(y_test_one_hot, y_predict_proba)
+    metrics_average = 'binary' if classes_count == 2 else 'macro'
+
+    TPR, FPR, ACC, PRECISION = compute_tpr_fpr_acc(y_test, y_predict, average=metrics_average)
+    AUC_ROC = roc_auc_score(y_test, y_predict_proba, average=metrics_average, multi_class='ovo')
+
+    # average here cannot be 'binary' since we never give it input it perceives as binary.
+    # in our case, it will perceive it as multi-label.
+    AUC_Precision_Recall = average_precision_score(y_test_one_hot, y_predict_proba, average='macro')
+
     train_time = best_model.model.train_time
     inference_time = calculate_inference_time(dataset, best_model)
+
     print(f'Accuracy {ACC}',
           f'TPR {TPR}',
           f'FPR {FPR}',

@@ -23,11 +23,20 @@ def showClasses(df, column_name):
     plt.show()
 
 
+def convert_enum_to_number(y):
+    labels = np.unique(y)
+    hash_map_labels = dict(zip(labels, np.arange(len(labels))))
+    return np.array(list(map(lambda label: hash_map_labels[label], y)))
+
+
 def split_to_data_and_target(df: pd.DataFrame):
     data = df.values
     X, y = data[:, :-1], data[:, -1]
     X = X.astype('float32')
-    y = y.astype('int32')
+    if isinstance(y[0], str):
+        y = convert_enum_to_number(y)
+    else:
+        y = y.astype('int32')
     return X, y
 
 

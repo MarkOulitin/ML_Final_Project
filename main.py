@@ -178,11 +178,11 @@ def evaluate(dataset_name, method):
     for iteration, (train_indexes, test_indexes) in enumerate(outer_cv.split(data)):
         X_train, X_test = data[train_indexes, :], data[test_indexes, :]
         y_train, y_test = labels[train_indexes], labels[test_indexes]
-        model = KerasClassifier(build_fn=model_factory, epochs=1, batch_size=32, verbose=0)
+        model = KerasClassifier(build_fn=model_factory, epochs=10, batch_size=32, verbose=0)
         clf = RandomizedSearchCV(
             model,
             param_distributions=distributions,
-            n_iter=1,
+            n_iter=50,
             scoring='accuracy',
             cv=CV_INNER_N_ITERATIONS,
             random_state=0
@@ -256,4 +256,4 @@ def statistic_test(data_filename):
 
 
 if __name__ == "__main__":
-    some_test()
+    main()

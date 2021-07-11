@@ -3,6 +3,8 @@ import os
 import time
 import sys
 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -211,14 +213,18 @@ def evaluate(
         print(
             f'Starting iteration {iteration + 1}/{n_cv_outer_splits} at {datetime.datetime.now():%H:%M:%S} '
             f'on dataset \'{dataset_name}\', algorithm variant \'{method}\'',
-            end=''
+            end='', flush=True
         )
         fit_start_time = time.time()
 
         result = clf.fit(X_train, y_train)
 
         fit_time_delta = time.time() - fit_start_time
-        print(f', time took: {format_timedelta(datetime.timedelta(seconds=fit_time_delta))}')
+        print(
+            f'\rFinished iteration {iteration + 1}/{n_cv_outer_splits} at {datetime.datetime.now():%H:%M:%S} '
+            f'on dataset \'{dataset_name}\', algorithm variant \'{method}\', '
+            f'time took: {format_timedelta(datetime.timedelta(seconds=fit_time_delta))}'
+        )
 
         best_model = result.best_estimator_
         y_predict = best_model.predict(X_test)

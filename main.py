@@ -211,8 +211,9 @@ def evaluate(
             random_state=0
         )
 
+        fit_start_datetime = datetime.datetime.now()
         print(
-            f'Starting iteration {iteration + 1}/{n_cv_outer_splits} at {datetime.datetime.now():%H:%M:%S} '
+            f'Starting iteration {iteration + 1}/{n_cv_outer_splits} at {fit_start_datetime:%H:%M:%S} '
             f'on dataset \'{dataset_name}\', algorithm variant \'{method}\'',
             end='', flush=True
         )
@@ -222,7 +223,7 @@ def evaluate(
 
         fit_time_delta = time.time() - fit_start_time
         print(
-            f'\rFinished iteration {iteration + 1}/{n_cv_outer_splits} at {datetime.datetime.now():%H:%M:%S} '
+            f'\rFinished iteration {iteration + 1}/{n_cv_outer_splits} at {fit_start_datetime:%H:%M:%S} '
             f'on dataset \'{dataset_name}\', algorithm variant \'{method}\', '
             f'time took: {format_timedelta(datetime.timedelta(seconds=fit_time_delta))}'
         )

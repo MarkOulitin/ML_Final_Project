@@ -198,14 +198,14 @@ def evaluate(
         model = KerasClassifierOur(
             num_classes=classes_count,
             build_fn=model_factory,
-            epochs=1,
+            epochs=epochs,
             batch_size=32,
             verbose=0
         )
         clf = RandomizedSearchCV(
             model,
             param_distributions=distributions,
-            n_iter=1,
+            n_iter=n_random_search_iters,
             scoring='accuracy',
             cv=StratifiedKFold(n_splits=n_cv_inner_splits),
             random_state=0

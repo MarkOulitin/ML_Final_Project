@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+hill-valley.csv,OUR,1,"alpha = 0.0, epsilon = 0.001",0.0,0.0,0.5,,0.518,0.539,7.475,0.05
+hill-valley.csv,OUR,2,"alpha = 0.0, epsilon = 0.001",0.213,0.213,0.5,0.5,0.582,0.558,7.528,0.05
+hill-valley.csv,OUR,3,"alpha = 0.18, epsilon = 0.001",1.0,1.0,0.496,0.496,0.526,0.516,7.5,0.051
+hill-valley.csv,OUR,4,"alpha = 0.1, epsilon = 0.001",1.0,1.0,0.496,0.496,0.442,0.46,7.75,0.059
+hill-valley.csv,OUR,5,"alpha = 0.34, epsilon = 0.002",1.0,1.0,0.496,0.496,0.423,0.488,7.536,0.089
+hill-valley.csv,OUR,6,"alpha = 0.34, epsilon = 0.002",0.55,0.459,0.545,0.541,0.576,0.579,7.608,0.091
+hill-valley.csv,OUR,7,"alpha = 0.98, epsilon = 0.001",1.0,1.0,0.504,0.504,0.521,0.516,7.751,0.055
+hill-valley.csv,OUR,8,"alpha = 0.02, epsilon = 0.001",0.328,0.25,0.537,0.571,0.52,0.537,7.739,0.049
+hill-valley.csv,OUR,9,"alpha = 0.84, epsilon = 0.002",0.82,0.617,0.603,0.575,0.625,0.621,7.586,0.088
+hill-valley.csv,OUR,10,"alpha = 0.0, epsilon = 0.001",0.852,0.9,0.479,0.491,0.514,0.506,7.539,0.051

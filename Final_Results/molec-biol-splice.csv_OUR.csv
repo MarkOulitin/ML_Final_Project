@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+molec-biol-splice.csv,OUR,1,"alpha = 0.78, epsilon = 0.001",0.791,0.102,0.815,0.801,0.933,0.854,21.671,0.048
+molec-biol-splice.csv,OUR,2,"alpha = 0.94, epsilon = 0.0",0.709,0.143,0.752,0.742,0.908,0.81,21.636,0.057
+molec-biol-splice.csv,OUR,3,"alpha = 0.98, epsilon = 0.001",0.778,0.109,0.799,0.782,0.93,0.863,21.677,0.046
+molec-biol-splice.csv,OUR,4,"alpha = 0.42, epsilon = 0.001",0.785,0.105,0.799,0.779,0.93,0.844,21.521,0.045
+molec-biol-splice.csv,OUR,5,"alpha = 1.66, epsilon = 0.001",0.855,0.078,0.846,0.831,0.957,0.904,21.665,0.046
+molec-biol-splice.csv,OUR,6,"alpha = 1.9, epsilon = 0.002",0.796,0.103,0.824,0.825,0.933,0.873,21.805,0.046
+molec-biol-splice.csv,OUR,7,"alpha = 1.86, epsilon = 0.002",0.878,0.067,0.868,0.855,0.968,0.928,21.554,0.053
+molec-biol-splice.csv,OUR,8,"alpha = 0.0, epsilon = 0.001",0.761,0.119,0.803,0.81,0.923,0.826,22.094,0.051
+molec-biol-splice.csv,OUR,9,"alpha = 0.56, epsilon = 0.001",0.755,0.122,0.774,0.754,0.916,0.844,22.242,0.245
+molec-biol-splice.csv,OUR,10,"alpha = 1.5, epsilon = 0.001",0.79,0.106,0.79,0.767,0.921,0.832,21.815,0.047

@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+oocytes_merluccius_nucleus_4d.csv,Article,1,"alpha = 1.58, epsilon = 0.002",0.87,0.265,0.825,0.87,0.864,0.916,5.118,0.044
+oocytes_merluccius_nucleus_4d.csv,Article,2,"alpha = 0.94, epsilon = 0.0",0.841,0.265,0.806,0.866,0.847,0.912,4.95,0.045
+oocytes_merluccius_nucleus_4d.csv,Article,3,"alpha = 0.94, epsilon = 0.0",0.957,0.515,0.804,0.795,0.843,0.915,5.185,0.046
+oocytes_merluccius_nucleus_4d.csv,Article,4,"alpha = 0.64, epsilon = 0.001",0.971,0.545,0.804,0.788,0.89,0.945,4.974,0.048
+oocytes_merluccius_nucleus_4d.csv,Article,5,"alpha = 0.78, epsilon = 0.001",0.884,0.364,0.804,0.836,0.816,0.851,4.931,0.044
+oocytes_merluccius_nucleus_4d.csv,Article,6,"alpha = 0.22, epsilon = 0.0",0.956,0.559,0.784,0.774,0.848,0.912,4.917,0.046
+oocytes_merluccius_nucleus_4d.csv,Article,7,"alpha = 0.56, epsilon = 0.001",0.838,0.382,0.765,0.814,0.833,0.904,4.89,0.047
+oocytes_merluccius_nucleus_4d.csv,Article,8,"alpha = 1.16, epsilon = 0.001",0.971,0.5,0.814,0.795,0.841,0.889,4.898,0.044
+oocytes_merluccius_nucleus_4d.csv,Article,9,"alpha = 0.94, epsilon = 0.0",0.853,0.294,0.804,0.853,0.857,0.917,4.998,0.053
+oocytes_merluccius_nucleus_4d.csv,Article,10,"alpha = 1.16, epsilon = 0.0",0.941,0.529,0.784,0.78,0.865,0.921,4.853,0.045

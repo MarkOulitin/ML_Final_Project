@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+car.csv,Article,1,"alpha = 1.82, epsilon = 0.002",0.777,0.033,0.942,0.914,0.974,0.963,11.488,0.098
+car.csv,Article,2,"alpha = 0.06, epsilon = 0.002",0.983,0.013,0.977,0.983,0.998,0.997,11.301,0.058
+car.csv,Article,3,"alpha = 0.18, epsilon = 0.001",0.774,0.072,0.867,0.902,0.953,0.928,11.514,0.058
+car.csv,Article,4,"alpha = 0.94, epsilon = 0.0",0.836,0.022,0.931,0.85,0.961,0.897,11.275,0.058
+car.csv,Article,5,"alpha = 0.82, epsilon = 0.002",0.745,0.052,0.896,0.816,0.956,0.917,11.207,0.058
+car.csv,Article,6,"alpha = 0.84, epsilon = 0.002",0.892,0.032,0.936,0.923,0.983,0.982,11.392,0.059
+car.csv,Article,7,"alpha = 0.42, epsilon = 0.001",0.917,0.029,0.925,0.834,0.994,0.956,11.979,0.063
+car.csv,Article,8,"alpha = 0.78, epsilon = 0.001",0.912,0.051,0.919,0.882,0.999,0.99,11.366,0.056
+car.csv,Article,9,"alpha = 0.78, epsilon = 0.001",0.962,0.028,0.93,0.913,0.998,0.983,11.411,0.32
+car.csv,Article,10,"alpha = 1.76, epsilon = 0.002",0.854,0.036,0.878,0.733,0.996,0.966,11.182,0.097

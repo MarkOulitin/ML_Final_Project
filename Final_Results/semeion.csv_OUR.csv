@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+semeion.csv,OUR,1,"alpha = 1.34, epsilon = 0.002",0.937,0.007,0.938,0.939,0.997,0.987,19.837,0.212
+semeion.csv,OUR,2,"alpha = 0.26, epsilon = 0.001",0.919,0.009,0.919,0.92,0.995,0.973,19.042,0.147
+semeion.csv,OUR,3,"alpha = 0.64, epsilon = 0.001",0.892,0.012,0.894,0.9,0.993,0.963,18.81,0.151
+semeion.csv,OUR,4,"alpha = 0.0, epsilon = 0.001",0.887,0.013,0.887,0.891,0.992,0.947,18.997,0.094
+semeion.csv,OUR,5,"alpha = 1.82, epsilon = 0.002",0.924,0.008,0.925,0.926,0.992,0.968,18.889,0.096
+semeion.csv,OUR,6,"alpha = 0.84, epsilon = 0.001",0.943,0.006,0.943,0.945,0.996,0.974,18.917,0.086
+semeion.csv,OUR,7,"alpha = 0.84, epsilon = 0.002",0.899,0.011,0.899,0.905,0.994,0.961,19.047,0.093
+semeion.csv,OUR,8,"alpha = 0.18, epsilon = 0.001",0.912,0.01,0.912,0.921,0.995,0.976,18.458,0.085
+semeion.csv,OUR,9,"alpha = 0.0, epsilon = 0.001",0.868,0.015,0.868,0.875,0.992,0.956,19.013,0.104
+semeion.csv,OUR,10,"alpha = 1.82, epsilon = 0.002",0.893,0.012,0.893,0.897,0.994,0.964,18.861,0.092

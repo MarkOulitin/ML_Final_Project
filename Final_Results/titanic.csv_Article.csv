@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+titanic.csv,Article,1,"alpha = 1.28, epsilon = 0.001",0.208,0.027,0.724,0.789,0.673,0.465,16.225,0.058
+titanic.csv,Article,2,"alpha = 1.34, epsilon = 0.002",1.0,0.087,0.941,0.845,1.0,1.0,16.164,0.058
+titanic.csv,Article,3,"alpha = 1.76, epsilon = 0.002",0.845,0.0,0.95,1.0,0.845,0.895,16.709,0.057
+titanic.csv,Article,4,"alpha = 1.28, epsilon = 0.001",0.958,0.0,0.986,1.0,0.958,0.971,16.184,0.096
+titanic.csv,Article,5,"alpha = 0.34, epsilon = 0.002",0.352,0.463,0.477,0.266,0.483,0.427,16.253,0.057
+titanic.csv,Article,6,"alpha = 0.88, epsilon = 0.001",0.0,0.349,0.441,0.0,0.255,0.313,16.225,0.056
+titanic.csv,Article,7,"alpha = 1.28, epsilon = 0.001",0.0,0.0,0.677,,0.0,0.253,16.135,0.055
+titanic.csv,Article,8,"alpha = 0.88, epsilon = 0.001",0.0,0.0,0.677,,0.507,0.332,16.298,0.095
+titanic.csv,Article,9,"alpha = 0.88, epsilon = 0.001",0.0,0.0,0.677,,0.499,0.322,16.186,0.062
+titanic.csv,Article,10,"alpha = 0.88, epsilon = 0.001",0.0,0.0,0.677,,0.631,0.477,16.09,0.06

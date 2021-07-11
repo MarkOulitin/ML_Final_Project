@@ -157,14 +157,14 @@ def calculate_inference_time(X, model):
     return time.time() - start_time
 
 
-def start_evaluation(method):
+def start_evaluation(method, should_save):
     setup()
     datasets_names = get_datasets_names()
     # methods = ['Article', 'OUR', 'Dropout']
     amount_of_datasets = len(datasets_names)
     for iteration, dataset_name in enumerate(datasets_names):
         # for method in methods:
-        evaluate(dataset_name, method)
+        evaluate(dataset_name, method, should_save)
         print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
     results_filename = 'Results.xlsx'
     # merge_results(results_filename)
@@ -174,6 +174,7 @@ def start_evaluation(method):
 def evaluate(
         dataset_name,
         method,
+        should_save,
         n_cv_outer_splits=CV_OUTER_N_ITERATIONS,
         n_cv_inner_splits=CV_INNER_N_ITERATIONS,
         epochs=EPOCHS,
@@ -197,14 +198,14 @@ def evaluate(
         model = KerasClassifierOur(
             num_classes=classes_count,
             build_fn=model_factory,
-            epochs=epochs,
+            epochs=1,
             batch_size=32,
             verbose=0
         )
         clf = RandomizedSearchCV(
             model,
             param_distributions=distributions,
-            n_iter=n_random_search_iters,
+            n_iter=1,
             scoring='accuracy',
             cv=StratifiedKFold(n_splits=n_cv_inner_splits),
             random_state=0
@@ -230,14 +231,16 @@ def evaluate(
         y_predict = best_model.predict(X_test)
         y_predict_proba = best_model.predict_proba(X_test)
         report = report_performance(data, y_predict, y_predict_proba, y_test, best_model, classes_count)
-        if method == 'Dropout':
-            hp_values = 'dropout_rate = ' + str(np.round(result.best_params_['dropout_rate'], 3))
-        else:
-            alpha_str = 'alpha = ' + str(np.round(result.best_params_['alpha'], 3))
-            eps_str = 'epsilon = ' + str(np.round(result.best_params_['epsilon'], 3))
-            hp_values = alpha_str + ', ' + eps_str
-        save_to_dict(performance, iteration + 1, hp_values, *report)
-        save_to_csv(performance, dataset_name + "_" + method)
+
+        if should_save:
+            if method == 'Dropout':
+                hp_values = 'dropout_rate = ' + str(np.round(result.best_params_['dropout_rate'], 3))
+            else:
+                alpha_str = 'alpha = ' + str(np.round(result.best_params_['alpha'], 3))
+                eps_str = f'epsilon = {np.round(result.best_params_["epsilon"] * 1000, 3)}e-3'
+                hp_values = alpha_str + ', ' + eps_str
+            save_to_dict(performance, iteration + 1, hp_values, *report)
+            save_to_csv(performance, dataset_name + "_" + method)
         # print(f'Dataset {dataset_name} -- Done {iteration + 1} iteration')
     # save_to_csv(performance, dataset_name + "_" + method)
 
@@ -330,9 +333,12 @@ def parse_args():
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('algovar')
     args_parser.add_argument('-cpu', default=False, required=False, const=True, action='store_const')
+    args_parser.add_argument(
+        '-no-save', default=False, required=False,
+        const=True, action='store_const', dest='no_save'
+    )
     args_parser.add_argument('--gpu-mem-limit', type=int, default=None, required=False)
     args = args_parser.parse_args()
-    print(args)
     return args
 
 
@@ -345,19 +351,20 @@ def choose_device(args):
     return device
 
 
-def run_on_device(method, device):
+def run_on_device(method, device, should_save):
     if device is None:
-        start_evaluation(method)
+        start_evaluation(method, should_save)
     else:
         with device:
-            start_evaluation(method)
+            start_evaluation(method, should_save)
 
 
 def main():
     args = parse_args()
+    print(f'args:', args)
     if len(sys.argv) > 1:
         device = choose_device(args)
-        run_on_device(args.algovar, device)
+        run_on_device(args.algovar, device, not args.no_save)
     else:
         print('Add argument => 1 = Article, 2 = OUR, 3 = Dropout')
 

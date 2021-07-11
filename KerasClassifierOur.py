@@ -8,7 +8,6 @@ from tensorflow.python.keras.wrappers.scikit_learn import BaseWrapper, KerasClas
 class KerasClassifierOur(KerasClassifier):
     def __init__(self, num_classes, build_fn=None, **kwargs):
         super(KerasClassifierOur, self).__init__(build_fn=build_fn, **kwargs)
-        self._estimator_type = "classifier"
         self.num_classes = num_classes
         self.model = None
         self.sk_params['num_classes'] = num_classes

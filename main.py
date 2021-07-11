@@ -1,3 +1,4 @@
+import datetime
 import os
 import time
 import sys
@@ -154,7 +155,7 @@ def calculate_inference_time(X, model):
     return time.time() - start_time
 
 
-def main(method):
+def start_evaluation(method):
     setup()
     datasets_names = get_datasets_names()
     # methods = ['Article', 'OUR', 'Dropout']
@@ -162,10 +163,10 @@ def main(method):
     for iteration, dataset_name in enumerate(datasets_names):
         # for method in methods:
         evaluate(dataset_name, method)
-    print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
+        print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
     results_filename = 'Results.xlsx'
     # merge_results(results_filename)
-    statistic_test(results_filename, len(datasets_names), len(methods))
+    # statistic_test(results_filename, len(datasets_names), len(methods))
 
 
 def evaluate(
@@ -206,7 +207,19 @@ def evaluate(
             cv=StratifiedKFold(n_splits=n_cv_inner_splits),
             random_state=0
         )
+
+        print(
+            f'Starting iteration {iteration + 1}/{n_cv_outer_splits} at {datetime.datetime.now():%H:%M:%S} '
+            f'on dataset \'{dataset_name}\', algorithm variant \'{method}\'',
+            end=''
+        )
+        fit_start_time = time.time()
+
         result = clf.fit(X_train, y_train)
+
+        fit_time_delta = time.time() - fit_start_time
+        print(f', time took: {format_timedelta(datetime.timedelta(seconds=fit_time_delta))}')
+
         best_model = result.best_estimator_
         y_predict = best_model.predict(X_test)
         y_predict_proba = best_model.predict_proba(X_test)
@@ -219,7 +232,7 @@ def evaluate(
             hp_values = alpha_str + ', ' + eps_str
         save_to_dict(performance, iteration + 1, hp_values, *report)
         save_to_csv(performance, dataset_name + "_" + method)
-        print(f'Dataset {dataset_name} -- Done {iteration + 1} iteration')
+        # print(f'Dataset {dataset_name} -- Done {iteration + 1} iteration')
     # save_to_csv(performance, dataset_name + "_" + method)
 
 
@@ -288,8 +301,75 @@ def statistic_test(data_filename, amount_of_datasets, amount_of_algorithms):
     print('No yet implemented')
 
 
-if __name__ == "__main__":
+def setup_gpu(gpu_mem_limit):
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+        # Restrict TensorFlow to only allocate 1GB of memory on the first GPU
+        try:
+            tf.config.experimental.set_virtual_device_configuration(
+                gpus[0],
+                [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=gpu_mem_limit - 1024)]
+            )
+            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            print('Physical GPUs:', gpus)
+            print('Logical GPUs: ', logical_gpus)
+            return tf.device('/device:GPU:0')
+        except RuntimeError as e:
+            # Virtual devices must be set before GPUs have been initialized
+            print(e)
+
+
+def parse_args():
+    import argparse
+    args_parser = argparse.ArgumentParser()
+    args_parser.add_argument('algovar')
+    args_parser.add_argument('-cpu', default=False, required=False, const=True, action='store_const')
+    args_parser.add_argument('--gpu-mem-limit', type=int, default=None, required=False)
+    args = args_parser.parse_args()
+    print(args)
+    return args
+
+
+def choose_device(args):
+    device = None
+    if args.cpu:
+        device = tf.device('/CPU:0')
+    elif args.gpu_mem_limit is not None:
+        device = setup_gpu(args.gpu_mem_limit)
+    return device
+
+
+def run_on_device(method, device):
+    if device is None:
+        start_evaluation(method)
+    else:
+        with device:
+            start_evaluation(method)
+
+
+def main():
+    args = parse_args()
     if len(sys.argv) > 1:
-        main(sys.argv[1])
+        device = choose_device(args)
+        run_on_device(args.algovar, device)
     else:
         print('Add argument => 1 = Article, 2 = OUR, 3 = Dropout')
+
+
+def format_timedelta(td):
+    s = td.total_seconds()
+    hours, remainder = divmod(s, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    hours = int(hours)
+    minutes = int(minutes)
+    if hours > 0:
+        return f'{hours:02}:{minutes:02}:{seconds:05.2f}'
+    elif minutes > 0:
+        return f'{minutes:02}:{seconds:05.2f}'
+    else:
+        return f'{seconds:.2f}s'
+
+
+if __name__ == "__main__":
+    main()

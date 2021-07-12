@@ -275,9 +275,9 @@ def evaluate(
 
     First trains the model using nested cross-validation (both stratified)
     and random search for hyper-parameter optimization
-    as the inner cross-validation. After each inner cross-validation.
-    Afterwards, refits the model on the best found hyper-parameters
-    (implicit by the library, no code addition is required).
+    as the inner cross-validation.
+    After the inner cross-validation, refits the model on the best found
+    hyper-parameters (implicit by the library, no code addition is required).
 
     Then, evaluates it's prediction performance using
     various stats on the test set (the outer cross-validation test-set)

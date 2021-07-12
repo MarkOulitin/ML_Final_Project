@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+oocytes_merluccius_states_2f.csv,Dropout,1,dropout_rate = 0.019,0.959,0.036,0.932,0.93,0.992,0.983,3.776,0.098
+oocytes_merluccius_states_2f.csv,Dropout,2,dropout_rate = 0.02,0.947,0.044,0.942,0.947,0.998,0.995,3.832,0.098
+oocytes_merluccius_states_2f.csv,Dropout,3,dropout_rate = 0.118,0.857,0.055,0.882,0.773,0.981,0.911,3.628,0.056
+oocytes_merluccius_states_2f.csv,Dropout,4,dropout_rate = 0.019,0.844,0.094,0.882,0.856,0.976,0.949,3.921,0.06
+oocytes_merluccius_states_2f.csv,Dropout,5,dropout_rate = 0.06,0.722,0.092,0.863,0.887,0.957,0.889,3.92,0.058
+oocytes_merluccius_states_2f.csv,Dropout,6,dropout_rate = 0.02,0.92,0.067,0.902,0.871,0.993,0.984,3.679,0.102
+oocytes_merluccius_states_2f.csv,Dropout,7,dropout_rate = 0.019,0.845,0.092,0.902,0.933,0.984,0.971,3.667,0.052
+oocytes_merluccius_states_2f.csv,Dropout,8,dropout_rate = 0.06,0.836,0.095,0.833,0.734,0.96,0.804,3.801,0.057
+oocytes_merluccius_states_2f.csv,Dropout,9,dropout_rate = 0.071,0.861,0.077,0.902,0.832,0.984,0.912,3.832,0.058
+oocytes_merluccius_states_2f.csv,Dropout,10,dropout_rate = 0.019,0.928,0.06,0.902,0.842,0.985,0.961,3.821,0.056

@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+statlog-image.csv,Dropout,1,dropout_rate = 0.019,0.948,0.009,0.948,0.949,0.996,0.982,7.56,0.05
+statlog-image.csv,Dropout,2,dropout_rate = 0.019,0.939,0.01,0.939,0.947,0.996,0.977,7.653,0.087
+statlog-image.csv,Dropout,3,dropout_rate = 0.019,0.931,0.012,0.931,0.935,0.997,0.983,7.75,0.088
+statlog-image.csv,Dropout,4,dropout_rate = 0.071,0.935,0.011,0.935,0.938,0.998,0.988,7.619,0.087
+statlog-image.csv,Dropout,5,dropout_rate = 0.02,0.965,0.006,0.965,0.966,0.995,0.978,7.656,0.09
+statlog-image.csv,Dropout,6,dropout_rate = 0.019,0.965,0.006,0.965,0.967,0.999,0.994,7.707,0.048
+statlog-image.csv,Dropout,7,dropout_rate = 0.02,0.974,0.004,0.974,0.976,0.999,0.995,7.645,0.088
+statlog-image.csv,Dropout,8,dropout_rate = 0.02,0.957,0.007,0.957,0.958,0.997,0.987,7.734,0.053
+statlog-image.csv,Dropout,9,dropout_rate = 0.02,0.961,0.006,0.961,0.966,0.998,0.991,7.751,0.088
+statlog-image.csv,Dropout,10,dropout_rate = 0.019,0.922,0.013,0.922,0.924,0.995,0.977,7.776,0.051

@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+plant-texture.csv,OUR,1,"alpha = 1.36, epsilon = 1.919e-3",0.615,0.004,0.612,,0.979,0.73,11.932,0.095
+plant-texture.csv,OUR,2,"alpha = 1.66, epsilon = 1.293e-3",0.59,0.004,0.6,,0.979,0.736,11.915,0.094
+plant-texture.csv,OUR,3,"alpha = 0.18, epsilon = 1.076e-3",0.585,0.004,0.594,,0.979,0.708,12.302,0.095
+plant-texture.csv,OUR,4,"alpha = 0.88, epsilon = 1.187e-3",0.585,0.004,0.575,,0.983,0.743,12.244,0.11
+plant-texture.csv,OUR,5,"alpha = 0.0, epsilon = 1.247e-3",0.655,0.004,0.619,,0.979,0.742,12.386,0.105
+plant-texture.csv,OUR,6,"alpha = 1.82, epsilon = 1.502e-3",0.58,0.004,0.575,,0.98,0.706,12.334,0.102
+plant-texture.csv,OUR,7,"alpha = 0.86, epsilon = 0.241e-3",0.59,0.004,0.575,,0.978,0.707,12.242,0.109
+plant-texture.csv,OUR,8,"alpha = 0.22, epsilon = 0.422e-3",0.575,0.004,0.581,,0.978,0.689,12.25,0.094
+plant-texture.csv,OUR,9,"alpha = 1.98, epsilon = 0.728e-3",0.63,0.004,0.644,,0.986,0.83,12.21,0.095
+plant-texture.csv,OUR,10,"alpha = 0.46, epsilon = 0.963e-3",0.585,0.004,0.597,,0.977,0.717,12.458,0.052

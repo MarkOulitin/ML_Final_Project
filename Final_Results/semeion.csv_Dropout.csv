@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+semeion.csv,Dropout,1,dropout_rate = 0.019,0.969,0.003,0.969,0.972,0.994,0.987,8.352,0.142
+semeion.csv,Dropout,2,dropout_rate = 0.06,0.919,0.009,0.919,0.925,0.996,0.978,8.364,0.126
+semeion.csv,Dropout,3,dropout_rate = 0.019,0.892,0.012,0.894,0.896,0.994,0.966,8.311,0.126
+semeion.csv,Dropout,4,dropout_rate = 0.02,0.887,0.013,0.887,0.892,0.99,0.951,8.597,0.078
+semeion.csv,Dropout,5,dropout_rate = 0.02,0.949,0.006,0.95,0.952,0.992,0.961,8.549,0.072
+semeion.csv,Dropout,6,dropout_rate = 0.02,0.937,0.007,0.937,0.939,0.998,0.987,8.54,0.078
+semeion.csv,Dropout,7,dropout_rate = 0.02,0.892,0.012,0.893,0.905,0.988,0.948,8.507,0.075
+semeion.csv,Dropout,8,dropout_rate = 0.06,0.911,0.01,0.912,0.916,0.994,0.962,8.695,0.081
+semeion.csv,Dropout,9,dropout_rate = 0.087,0.88,0.013,0.881,0.884,0.991,0.952,8.664,0.072
+semeion.csv,Dropout,10,dropout_rate = 0.02,0.887,0.013,0.887,0.891,0.992,0.956,8.922,0.074

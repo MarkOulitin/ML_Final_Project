@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+plant-margin.csv,OUR,1,"alpha = 0.26, epsilon = 1.351e-3",0.645,0.004,0.612,,0.991,0.811,12.092,0.097
+plant-margin.csv,OUR,2,"alpha = 0.0, epsilon = 1.247e-3",0.6,0.004,0.606,,0.991,0.779,11.966,0.093
+plant-margin.csv,OUR,3,"alpha = 0.72, epsilon = 0.193e-3",0.59,0.004,0.588,,0.99,0.76,12.253,0.098
+plant-margin.csv,OUR,4,"alpha = 1.04, epsilon = 0.508e-3",0.605,0.004,0.6,,0.992,0.775,12.519,0.109
+plant-margin.csv,OUR,5,"alpha = 0.46, epsilon = 0.53e-3",0.605,0.004,0.619,,0.992,0.787,12.455,0.102
+plant-margin.csv,OUR,6,"alpha = 0.26, epsilon = 1.351e-3",0.65,0.004,0.638,,0.993,0.817,12.463,0.107
+plant-margin.csv,OUR,7,"alpha = 0.34, epsilon = 1.888e-3",0.595,0.004,0.594,,0.989,0.753,12.426,0.106
+plant-margin.csv,OUR,8,"alpha = 0.1, epsilon = 1.225e-3",0.625,0.004,0.638,,0.992,0.787,12.435,0.1
+plant-margin.csv,OUR,9,"alpha = 1.04, epsilon = 0.508e-3",0.585,0.004,0.6,,0.992,0.77,12.609,0.321
+plant-margin.csv,OUR,10,"alpha = 0.18, epsilon = 1.297e-3",0.595,0.004,0.594,,0.992,0.779,14.36,0.141

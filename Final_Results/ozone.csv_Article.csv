@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+ozone.csv,Article,1,"alpha = 0.72, epsilon = 0.596e-3",0.143,0.0,0.976,1.0,0.918,0.369,14.731,0.049
+ozone.csv,Article,2,"alpha = 0.22, epsilon = 0.422e-3",0.0,0.0,0.972,,0.886,0.246,15.019,0.053
+ozone.csv,Article,3,"alpha = 0.82, epsilon = 1.9e-3",0.0,0.0,0.972,,0.857,0.111,14.872,0.051
+ozone.csv,Article,4,"alpha = 0.22, epsilon = 0.422e-3",0.25,0.024,0.953,0.25,0.89,0.174,14.826,0.049
+ozone.csv,Article,5,"alpha = 0.82, epsilon = 1.9e-3",0.125,0.0,0.972,1.0,0.9,0.509,14.824,0.087
+ozone.csv,Article,6,"alpha = 0.84, epsilon = 1.955e-3",0.125,0.0,0.972,1.0,0.948,0.618,14.819,0.086
+ozone.csv,Article,7,"alpha = 0.02, epsilon = 1.396e-3",0.429,0.008,0.976,0.6,0.678,0.393,14.749,0.087
+ozone.csv,Article,8,"alpha = 0.46, epsilon = 0.963e-3",0.0,0.004,0.968,0.0,0.814,0.209,14.798,0.087
+ozone.csv,Article,9,"alpha = 0.18, epsilon = 1.076e-3",0.0,0.024,0.949,0.0,0.67,0.094,14.952,0.093
+ozone.csv,Article,10,"alpha = 1.76, epsilon = 0.787e-3",0.286,0.02,0.96,0.286,0.92,0.228,14.803,0.048

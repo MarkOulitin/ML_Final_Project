@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+cardiotocography-3clases.csv,OUR,1,"alpha = 0.18, epsilon = 1.297e-3",0.606,0.164,0.789,0.681,0.868,0.736,12.304,0.041
+cardiotocography-3clases.csv,OUR,2,"alpha = 0.26, epsilon = 1.351e-3",0.672,0.096,0.845,0.808,0.877,0.781,17.584,0.046
+cardiotocography-3clases.csv,OUR,3,"alpha = 0.3, epsilon = 0.95e-3",0.713,0.049,0.873,0.748,0.803,0.663,18.088,0.194
+cardiotocography-3clases.csv,OUR,4,"alpha = 0.72, epsilon = 0.193e-3",0.798,0.088,0.878,0.772,0.939,0.816,12.9,0.043
+cardiotocography-3clases.csv,OUR,5,"alpha = 0.42, epsilon = 1.48e-3",0.685,0.11,0.901,0.888,0.907,0.846,13.006,0.043
+cardiotocography-3clases.csv,OUR,6,"alpha = 0.22, epsilon = 0.422e-3",0.871,0.071,0.953,0.981,0.991,0.982,12.986,0.05
+cardiotocography-3clases.csv,OUR,7,"alpha = 0.78, epsilon = 1.059e-3",0.691,0.14,0.844,0.674,0.955,0.789,13.08,0.044
+cardiotocography-3clases.csv,OUR,8,"alpha = 0.78, epsilon = 1.059e-3",0.868,0.052,0.948,0.903,0.954,0.943,12.843,0.044
+cardiotocography-3clases.csv,OUR,9,"alpha = 0.82, epsilon = 1.941e-3",0.805,0.132,0.854,0.781,0.964,0.845,13.239,0.045
+cardiotocography-3clases.csv,OUR,10,"alpha = 0.26, epsilon = 1.351e-3",0.648,0.247,0.552,0.494,0.875,0.805,12.824,0.044

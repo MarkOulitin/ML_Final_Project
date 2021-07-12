@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+titanic.csv,Dropout,1,dropout_rate = 0.265,0.208,0.027,0.724,0.789,0.519,0.422,13.461,0.13
+titanic.csv,Dropout,2,dropout_rate = 0.36,1.0,0.087,0.941,0.845,1.0,1.0,13.296,0.078
+titanic.csv,Dropout,3,dropout_rate = 0.265,0.845,0.0,0.95,1.0,0.845,0.895,12.105,0.075
+titanic.csv,Dropout,4,dropout_rate = 0.383,0.958,0.0,0.986,1.0,0.958,0.971,12.109,0.078
+titanic.csv,Dropout,5,dropout_rate = 0.618,0.352,0.463,0.477,0.266,0.483,0.43,12.122,0.092
+titanic.csv,Dropout,6,dropout_rate = 0.603,0.437,0.483,0.491,0.301,0.546,0.411,13.089,0.079
+titanic.csv,Dropout,7,dropout_rate = 0.522,0.0,0.0,0.677,,0.817,0.876,12.443,0.078
+titanic.csv,Dropout,8,dropout_rate = 0.545,0.014,0.0,0.682,1.0,0.507,0.332,12.544,0.072
+titanic.csv,Dropout,9,dropout_rate = 0.545,0.0,0.0,0.677,,0.5,0.323,11.972,0.071
+titanic.csv,Dropout,10,dropout_rate = 0.529,0.0,0.0,0.677,,0.631,0.477,12.401,0.077

@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+mfeat-karhunen.csv,Dropout,1,dropout_rate = 0.118,0.93,0.008,0.93,0.934,0.997,0.981,10.683,0.069
+mfeat-karhunen.csv,Dropout,2,dropout_rate = 0.019,0.955,0.005,0.955,0.959,0.999,0.993,10.501,0.072
+mfeat-karhunen.csv,Dropout,3,dropout_rate = 0.02,0.975,0.003,0.975,0.976,0.999,0.995,11.735,0.078
+mfeat-karhunen.csv,Dropout,4,dropout_rate = 0.02,0.97,0.003,0.97,0.972,0.998,0.992,10.925,0.072
+mfeat-karhunen.csv,Dropout,5,dropout_rate = 0.06,0.95,0.006,0.95,0.953,0.998,0.989,11.97,0.078
+mfeat-karhunen.csv,Dropout,6,dropout_rate = 0.02,0.965,0.004,0.965,0.968,0.998,0.99,12.159,0.096
+mfeat-karhunen.csv,Dropout,7,dropout_rate = 0.019,0.96,0.004,0.96,0.961,0.999,0.993,12.139,0.083
+mfeat-karhunen.csv,Dropout,8,dropout_rate = 0.019,0.945,0.006,0.945,0.948,0.994,0.979,11.868,0.081
+mfeat-karhunen.csv,Dropout,9,dropout_rate = 0.071,0.955,0.005,0.955,0.957,0.997,0.984,11.852,0.084
+mfeat-karhunen.csv,Dropout,10,dropout_rate = 0.087,0.98,0.002,0.98,0.981,0.993,0.984,11.712,0.08

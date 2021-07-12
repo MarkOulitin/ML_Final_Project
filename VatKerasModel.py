@@ -56,6 +56,7 @@ class VatKerasModel(keras.Model):
         """
         Initializes the model with the specified input layer, outplay layer,
         training variant and hyper parameters.
+        See the article for the meaning of each hyper-parameter.
 
         :param inputs: The input layer
         :param outputs: The output layer
@@ -176,6 +177,9 @@ class VatKerasModel(keras.Model):
             R_vadv = kl_divergence(y_true, y_hat_vadvs)
         else:
             R_vadv = kl_divergence(y_pred, y_hat_vadvs)
+
+        # Using the compiled loss as 'fancy' l.
+        # See the article for the objective function.
         return self.compiled_loss(y_true, y_pred) + self.alpha * R_vadv
 
     # code adopted from https://github.com/takerum/vat_tf/blob/c5125d267531ce0f10b2238cf95604d287de63c8/vat.py#L39
@@ -197,7 +201,10 @@ class VatKerasModel(keras.Model):
             with tf.GradientTape() as d_tape:
                 d = xi * get_normalized_vector(d)
 
-                # computing the gradient of D by forward passing
+                # compute the gradient of D by watching the
+                # forward pass of the instances with the noise
+                # and then calculating D (the probability difference)
+                # while watching the calculation.
                 y_hat = self(x + d, training=False)
                 dist = kl_divergence(y, y_hat)
                 grad = d_tape.gradient(dist, [d])[0]

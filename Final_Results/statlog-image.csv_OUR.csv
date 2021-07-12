@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+statlog-image.csv,OUR,1,"alpha = 0.98, epsilon = 0.924e-3",0.957,0.007,0.957,0.96,0.997,0.988,13.86,0.089
+statlog-image.csv,OUR,2,"alpha = 0.82, epsilon = 1.941e-3",0.918,0.014,0.918,0.927,0.995,0.976,13.955,0.05
+statlog-image.csv,OUR,3,"alpha = 0.84, epsilon = 0.878e-3",0.965,0.006,0.965,0.969,0.998,0.988,13.97,0.05
+statlog-image.csv,OUR,4,"alpha = 0.84, epsilon = 0.878e-3",0.97,0.005,0.97,0.971,0.999,0.994,14.049,0.051
+statlog-image.csv,OUR,5,"alpha = 0.18, epsilon = 1.297e-3",0.978,0.004,0.978,0.979,0.999,0.992,14.143,0.052
+statlog-image.csv,OUR,6,"alpha = 0.0, epsilon = 1.247e-3",0.974,0.004,0.974,0.975,0.999,0.996,14.121,0.049
+statlog-image.csv,OUR,7,"alpha = 1.5, epsilon = 1.475e-3",0.978,0.004,0.978,0.98,1.0,0.999,13.886,0.049
+statlog-image.csv,OUR,8,"alpha = 0.0, epsilon = 1.247e-3",0.948,0.009,0.948,0.954,0.995,0.982,13.835,0.087
+statlog-image.csv,OUR,9,"alpha = 0.1, epsilon = 1.225e-3",0.944,0.009,0.944,0.945,0.997,0.989,13.892,0.05
+statlog-image.csv,OUR,10,"alpha = 1.86, epsilon = 1.757e-3",0.931,0.012,0.931,0.934,0.995,0.976,13.873,0.049

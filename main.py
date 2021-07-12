@@ -166,9 +166,6 @@ def start_evaluation(method, should_save):
         # for method in methods:
         evaluate(dataset_name, method, should_save)
         print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
-    results_filename = 'Results.xlsx'
-    # merge_results(results_filename)
-    # statistic_test(results_filename, len(datasets_names), len(methods))
 
 
 def evaluate(
@@ -213,7 +210,7 @@ def evaluate(
 
         fit_start_datetime = datetime.datetime.now()
         print(
-            f'Starting iteration {iteration + 1}/{n_cv_outer_splits} at {fit_start_datetime:%H:%M:%S} '
+            f'Started iteration {iteration + 1}/{n_cv_outer_splits} at {fit_start_datetime:%H:%M:%S} '
             f'on dataset \'{dataset_name}\', algorithm variant \'{method}\'',
             end='', flush=True
         )
@@ -222,11 +219,7 @@ def evaluate(
         result = clf.fit(X_train, y_train)
 
         fit_time_delta = time.time() - fit_start_time
-        print(
-            f'\rFinished iteration {iteration + 1}/{n_cv_outer_splits} at {fit_start_datetime:%H:%M:%S} '
-            f'on dataset \'{dataset_name}\', algorithm variant \'{method}\', '
-            f'time took: {format_timedelta(datetime.timedelta(seconds=fit_time_delta))}'
-        )
+        print(f', time took: {format_timedelta(datetime.timedelta(seconds=fit_time_delta))}')
 
         best_model = result.best_estimator_
         y_predict = best_model.predict(X_test)
@@ -332,7 +325,7 @@ def setup_gpu(gpu_mem_limit):
 def parse_args():
     import argparse
     args_parser = argparse.ArgumentParser()
-    args_parser.add_argument('algovar')
+    args_parser.add_argument('algovar', choices=['Article', 'OUR', 'Dropout'])
     args_parser.add_argument('-cpu', default=False, required=False, const=True, action='store_const')
     args_parser.add_argument(
         '-no-save', default=False, required=False,
@@ -340,7 +333,7 @@ def parse_args():
     )
     args_parser.add_argument('--gpu-mem-limit', type=int, default=None, required=False)
     args = args_parser.parse_args()
-    return args
+    return args, args_parser
 
 
 def choose_device(args):
@@ -361,13 +354,10 @@ def run_on_device(method, device, should_save):
 
 
 def main():
-    args = parse_args()
+    args, args_parser = parse_args()
     print(f'args:', args)
-    if len(sys.argv) > 1:
-        device = choose_device(args)
-        run_on_device(args.algovar, device, not args.no_save)
-    else:
-        print('Add argument => 1 = Article, 2 = OUR, 3 = Dropout')
+    device = choose_device(args)
+    run_on_device(args.algovar, device, not args.no_save)
 
 
 def format_timedelta(td):

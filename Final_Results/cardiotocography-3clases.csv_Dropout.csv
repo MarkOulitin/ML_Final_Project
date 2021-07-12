@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+cardiotocography-3clases.csv,Dropout,1,dropout_rate = 0.087,0.648,0.138,0.84,0.718,0.887,0.76,6.85,0.044
+cardiotocography-3clases.csv,Dropout,2,dropout_rate = 0.36,0.512,0.138,0.789,,0.816,0.642,6.957,0.052
+cardiotocography-3clases.csv,Dropout,3,dropout_rate = 0.415,0.456,0.271,0.817,0.936,0.838,0.74,6.836,0.049
+cardiotocography-3clases.csv,Dropout,4,dropout_rate = 0.071,0.792,0.095,0.859,0.779,0.919,0.776,6.89,0.051
+cardiotocography-3clases.csv,Dropout,5,dropout_rate = 0.36,0.6,0.167,0.859,0.804,0.908,0.85,6.844,0.045
+cardiotocography-3clases.csv,Dropout,6,dropout_rate = 0.364,0.797,0.108,0.925,0.95,0.976,0.964,6.643,0.044
+cardiotocography-3clases.csv,Dropout,7,dropout_rate = 0.265,0.717,0.129,0.844,0.676,0.923,0.754,6.6,0.044
+cardiotocography-3clases.csv,Dropout,8,dropout_rate = 0.265,0.835,0.07,0.915,0.824,0.956,0.934,6.707,0.046
+cardiotocography-3clases.csv,Dropout,9,dropout_rate = 0.21,0.715,0.181,0.84,0.758,0.96,0.836,6.667,0.049
+cardiotocography-3clases.csv,Dropout,10,dropout_rate = 0.143,0.65,0.25,0.623,0.48,0.871,0.78,6.823,0.048

@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+wine-quality-red.csv,Article,1,"alpha = 0.46, epsilon = 0.53e-3",0.205,0.138,0.519,,0.696,0.318,10.609,0.104
+wine-quality-red.csv,Article,2,"alpha = 1.28, epsilon = 1.207e-3",0.279,0.093,0.662,,0.662,0.334,10.169,0.146
+wine-quality-red.csv,Article,3,"alpha = 0.72, epsilon = 0.596e-3",0.272,0.125,0.531,,0.784,0.574,10.471,0.109
+wine-quality-red.csv,Article,4,"alpha = 1.16, epsilon = 0.319e-3",0.27,0.116,0.581,,0.776,0.347,10.501,0.105
+wine-quality-red.csv,Article,5,"alpha = 1.58, epsilon = 1.741e-3",0.291,0.123,0.562,,0.78,0.412,10.826,0.133
+wine-quality-red.csv,Article,6,"alpha = 1.16, epsilon = 0.319e-3",0.348,0.076,0.706,,0.8,0.386,11.207,0.121
+wine-quality-red.csv,Article,7,"alpha = 0.98, epsilon = 0.924e-3",0.284,0.107,0.6,,0.751,0.348,11.088,0.135
+wine-quality-red.csv,Article,8,"alpha = 0.02, epsilon = 1.396e-3",0.276,0.114,0.581,,0.635,0.309,11.406,0.138
+wine-quality-red.csv,Article,9,"alpha = 0.98, epsilon = 0.924e-3",0.267,0.103,0.631,,0.787,0.412,10.644,0.11
+wine-quality-red.csv,Article,10,"alpha = 1.76, epsilon = 0.787e-3",0.28,0.119,0.572,,0.768,0.373,11.45,0.058

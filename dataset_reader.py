@@ -1,26 +1,10 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import os
-from sklearn.model_selection import train_test_split
 from pprint import pprint
 
+import numpy as np
+import pandas as pd
+
 dataset_dir = './classification_datasets/'
-
-
-def showClasses(df, column_name):
-    # Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    instances_by_class = df.groupby([column_name]).size()
-    labels = instances_by_class.index.tolist()
-    sizes = list(instances_by_class)
-    # explode = (0, 0.1, 0, 0)  # only "explode" the 2nd slice (i.e. 'Hogs')
-
-    fig1, ax1 = plt.subplots()
-    ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
-            shadow=True, startangle=90)
-    ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-
-    plt.show()
 
 
 def convert_enum_to_number(y):
@@ -38,20 +22,14 @@ def split_to_data_and_target(df: pd.DataFrame):
 
 
 def preprocessing(df):
-    # print(list(df.columns.values), df.shape[0])
     X, y = split_to_data_and_target(df)
     classes_count = df[df.columns[-1]].nunique()
     return X, y, classes_count
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-    # return X_train, X_test, y_train, y_test
 
 
 def read_data(filename):
     df = pd.read_csv(dataset_dir + filename)
     X, y, classes_count = preprocessing(df)
-    # X_train, X_test, y_train, y_test = preprocessing(df)
-    # print(f"{filename} => Finish preprocessing")
-    # return X_train, X_test, y_train, y_test
     input_dim = X.shape[1]
     return X, y, classes_count, input_dim
 
@@ -69,7 +47,6 @@ def get_files():
     datasets.sort(key=compare_dataset_by_size)
     datasets_top_20 = datasets[:20]
     dataset_names = list(map(lambda d: d[0], datasets_top_20))
-    # pprint(datasets_top_20)
     print(f'Total {len(dataset_names)}')
     pprint(dataset_names)
 

@@ -1,29 +1,24 @@
 import datetime
 import os
 import time
-import sys
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 
 import tensorflow as tf
-from tensorflow.python.client import device_lib
 from tensorflow import keras
 from tensorflow.keras import layers, losses, optimizers
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 
-from sklearn.model_selection import train_test_split, StratifiedKFold, RandomizedSearchCV
-from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, accuracy_score
+from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV
+from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score
 from scipy.stats import uniform
 
 from KerasClassifierOur import KerasClassifierOur
-from Model_VatCustomFit import ModelVatCustomFit
+from VatKerasModel import VatKerasModel
 from dataset_reader import read_data
 from Datasets import get_datasets_names
-from utils import save_to_dict, create_dict, save_to_csv, setup, merge_results
+from utils import save_to_dict, create_dict, save_to_csv, setup
 
 NaN = float('nan')
 
@@ -45,14 +40,9 @@ def compute_tpr_fpr_acc(y_true, y_pred, labels, average):
     if average != 'micro' and average != 'macro' and average != 'binary':
         raise ValueError(f'invalid average argument \'{average}\'')
 
-    # print(f'labels: {labels}')
     conf_mat = confusion_matrix(y_true, y_pred, labels=labels)
     diag = np.diag(conf_mat)
     all_sum = conf_mat.sum()
-
-    # print(f'y_true: {np.transpose(y_true[:10])}')
-    # print(f'y_pred: {np.transpose(y_pred[:10])}')
-    # print(conf_mat)
 
     if average == 'binary':
         if conf_mat.shape != (2, 2):
@@ -67,11 +57,6 @@ def compute_tpr_fpr_acc(y_true, y_pred, labels, average):
         FN = conf_mat.sum(axis=1) - diag
         TP = diag
         TN = all_sum - (FP + FN + TP)
-
-    # print(f'FP {FP}, {FP.sum()}')
-    # print(f'FN {FN}, {FN.sum()}')
-    # print(f'TP {TP}, {TP.sum()}')
-    # print(f'TN {TN}, {TN.sum()}')
 
     if average == 'micro':
         FP = FP.sum()
@@ -132,7 +117,7 @@ def configHyperModelFactory(method, input_dim, classes_count):
         in_layer = layers.Input(shape=(input_dim,))
         layer4 = buildLayers(in_layer, dropout_rate, method == 'Dropout')
         layer5 = layers.Dense(out_units_count, activation=activation, name="layer5")(layer4)
-        model = ModelVatCustomFit(
+        model = VatKerasModel(
             inputs=in_layer,
             outputs=layer5,
 
@@ -160,10 +145,8 @@ def calculate_inference_time(X, model):
 def start_evaluation(method, should_save):
     setup()
     datasets_names = get_datasets_names()
-    # methods = ['Article', 'OUR', 'Dropout']
     amount_of_datasets = len(datasets_names)
     for iteration, dataset_name in enumerate(datasets_names):
-        # for method in methods:
         evaluate(dataset_name, method, should_save)
         print(f'Done processing {iteration + 1} datasets from {amount_of_datasets}')
 
@@ -235,26 +218,6 @@ def evaluate(
                 hp_values = alpha_str + ', ' + eps_str
             save_to_dict(performance, iteration + 1, hp_values, *report)
             save_to_csv(performance, dataset_name + "_" + method)
-        # print(f'Dataset {dataset_name} -- Done {iteration + 1} iteration')
-    # save_to_csv(performance, dataset_name + "_" + method)
-
-
-def test_evaluate(dataset_name, method):
-    evaluate(
-        dataset_name,
-        method,
-        n_cv_outer_splits=2,
-        n_cv_inner_splits=2,
-        epochs=1,
-        n_random_search_iters=1
-    )
-
-
-def some_test():
-    setup()
-    method = 'Dropout'
-    test_evaluate('mfeat-karhunen.csv', method)
-    test_evaluate('titanic.csv', method)
 
 
 def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, classes_count, is_print=False):

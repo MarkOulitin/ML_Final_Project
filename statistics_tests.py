@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import scipy.stats
 import scikit_posthocs
+import scipy.stats
 
 CONFIDENCE_ALPHA = 0.05
 

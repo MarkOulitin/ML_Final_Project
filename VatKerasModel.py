@@ -1,4 +1,5 @@
 import time
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -9,7 +10,6 @@ kl_func_loss = losses.KLDivergence()
 
 def kl_divergence(p, q):
     return kl_func_loss(p, q)
-    # return tf.reduce_sum(p * (tf.math.log(p + 1e-16) - tf.math.log(q + 1e-16)), axis=1)
 
 
 def get_normalized_vector(d):
@@ -31,9 +31,9 @@ def split_to_batches(x, y, batch_size):
         yield x_batch_train, y_batch_train
 
 
-class ModelVatCustomFit(keras.Model):
+class VatKerasModel(keras.Model):
     def __init__(self, inputs, outputs, method, epsilon, alpha, xi):
-        super(ModelVatCustomFit, self).__init__(inputs=inputs, outputs=outputs)
+        super(VatKerasModel, self).__init__(inputs=inputs, outputs=outputs)
         self.method = method
         self.epsilon = epsilon
         self.alpha = alpha
@@ -78,8 +78,6 @@ class ModelVatCustomFit(keras.Model):
 
         start_time = time.time()
         for epoch in range(epochs):
-            # print("\nStart of epoch %d" % (epoch,))
-            start_time_epoch = time.time()
             for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
                 with tf.GradientTape() as tape:
                     y_pred = self(x_batch_train, training=True)
@@ -97,13 +95,8 @@ class ModelVatCustomFit(keras.Model):
                 # Update training metric.
                 train_acc_metric.update_state(y_batch_train, y_pred)
 
-                # Log every 200 batches.
-                # if step % 200 == 0:
-                #     print(f"Seen so far: {step + 1} batches")
-
             # Display metrics at the end of each epoch.
             train_acc = train_acc_metric.result()
-            # print("Training acc over epoch: %.4f" % (float(train_acc),))
             # Reset training metrics at the end of each epoch
             train_acc_metric.reset_states()
 

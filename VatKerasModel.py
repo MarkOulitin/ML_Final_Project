@@ -13,10 +13,24 @@ def kl_divergence(p, q):
 
 
 def get_normalized_vector(d):
+    """
+    Normalizes the input vector using L2 norm
+    :param d: Input vector
+    :return: Normalized input vector using L2 norm
+    """
     return tf.math.l2_normalize(d)
 
 
 def split_to_batches(x, y, batch_size):
+    """
+    A generator which yields batches of the input data of size `batch_size`
+    :param x: Dataset instances x attributes
+    :param y: Dataset target (instances x label)
+    (label may or may not be one-hot encoded)
+    :param batch_size: The size of each batch
+    :return: A generator splitting the input data to batches
+    """
+
     indexes = np.arange(x.shape[0])
     n_batches = x.shape[0] // batch_size
     end = batch_size * n_batches
@@ -26,13 +40,35 @@ def split_to_batches(x, y, batch_size):
         x_batch_train = x[batch_indices, :]
         y_batch_train = y[batch_indices]
 
+        # make sure we are working with tensorflow tensors
+        # to avoid calculation issues
         x_batch_train = tf.convert_to_tensor(x_batch_train)
         y_batch_train = tf.convert_to_tensor(y_batch_train)
         yield x_batch_train, y_batch_train
 
 
 class VatKerasModel(keras.Model):
+    """
+    A custom model to implement a custom fit training loop for
+    virtual adversarial training.
+    """
     def __init__(self, inputs, outputs, method, epsilon, alpha, xi):
+        """
+        Initializes the model with the specified input layer, outplay layer,
+        training variant and hyper parameters.
+
+        :param inputs: The input layer
+        :param outputs: The output layer
+        :param method: A string representing the kind of algorithm
+        used for the training.
+        Can be one of the following:
+          - 'Article' for the original article behavior
+          - 'OUR' for our change suggestion
+          - 'Dropout' for a normal fit, no virtual adversarial training
+        :param epsilon: epsilon hyper-parameter, see the original article
+        :param alpha:   alpha   hyper-parameter, see the original article
+        :param xi:      xi      hyper-parameter, see the original article
+        """
         super(VatKerasModel, self).__init__(inputs=inputs, outputs=outputs)
         self.method = method
         self.epsilon = epsilon
@@ -80,14 +116,27 @@ class VatKerasModel(keras.Model):
         for epoch in range(epochs):
             for step, (x_batch_train, y_batch_train) in enumerate(split_to_batches(x, y, batch_size)):
                 with tf.GradientTape() as tape:
+                    # forward pass
                     y_pred = self(x_batch_train, training=True)
+
+                    # whether to train with virtual adversarial or not
                     if self.method == 'Dropout':
                         loss_value = self.compiled_loss(y_batch_train, y_pred)
                     else:
+                        # calculate the adversarial perturbation, forward pass the
+                        # instances with the perturbation and calculate the loss.
+
+                        # Stop recording because we do not want the calculation
+                        # of the perturbation to affect the gradients
                         with tape.stop_recording():
+                            # calculate the perturbation
                             r_vadvs = self.compute_rvadvs(x_batch_train, y_pred, self.epsilon, self.xi)
+
+                        # forward pass instances near the input using the perturbation
                         y_hat_vadvs = self(x_batch_train + r_vadvs, training=False)
                         loss_value = self.compute_loss(y_batch_train, y_pred, y_hat_vadvs)
+
+                # compute the gradients and apply them
                 grads = tape.gradient(loss_value, self.trainable_weights)
                 self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
                 self.compiled_metrics.update_state(y, y_pred)
@@ -111,6 +160,18 @@ class VatKerasModel(keras.Model):
         # print("Time taken: %.2fs" % self.train_time)
 
     def compute_loss(self, y_true, y_pred, y_hat_vadvs):
+        """
+        Computes the loss as in virtual adversarial training or
+        with our change suggestion.
+        :param y_true: The actual y labels
+        :param y_pred: The y labels the model predicted
+        :param y_hat_vadvs: The y labels the model predicted for instances
+        with the perturbation
+        :return: The computed loss
+        """
+
+        # D = kl_divergence
+        # R_vadv - the regularization term, see the article
         if self.method == 'OUR':
             R_vadv = kl_divergence(y_true, y_hat_vadvs)
         else:
@@ -119,16 +180,32 @@ class VatKerasModel(keras.Model):
 
     # code adopted from https://github.com/takerum/vat_tf/blob/c5125d267531ce0f10b2238cf95604d287de63c8/vat.py#L39
     def compute_rvadvs(self, x, y, epsilon, xi):
+        """
+        Computes the small perturbation of size `epsilon` (called r_vadv).
+        See the article for mathematical calculation and proof
+        :param x: Input instances
+        :param y: Input labels
+        :param epsilon: epsilon hyper-parameter
+        :param xi: xi hyper-parameter
+        :return: The small r_vadv perturbation
+        """
         d = tf.random.normal(shape=tf.shape(x))
         num_of_iterations = 1
         for _ in range(num_of_iterations):
+            # make sure the tensor is watched by the tape
             d = tf.Variable(d, True)
             with tf.GradientTape() as d_tape:
                 d = xi * get_normalized_vector(d)
+
+                # computing the gradient of D by forward passing
                 y_hat = self(x + d, training=False)
                 dist = kl_divergence(y, y_hat)
                 grad = d_tape.gradient(dist, [d])[0]
+
+                # make the tape stop watching this particular tensor
                 d = tf.stop_gradient(grad)
+
+        # normalize the vector to the maximum allowed size (epsilon)
         return epsilon * get_normalized_vector(d)
 
     # code adopted from https://github.com/tensorflow/tensorflow/blob/a4dfb8d1a71385bd6d122e4f27f86dcebb96712d/tensorflow/python/keras/engine/sequential.py#L441

@@ -300,10 +300,6 @@ def report_performance(dataset, y_predict, y_predict_proba, y_test, best_model, 
     return TPR, FPR, ACC, PRECISION, AUC_ROC, AUC_Precision_Recall, train_time, inference_time
 
 
-def statistic_test(data_filename, amount_of_datasets, amount_of_algorithms):
-    print('No yet implemented')
-
-
 def setup_gpu(gpu_mem_limit):
     gpus = tf.config.list_physical_devices('GPU')
     if gpus:

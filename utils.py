@@ -55,9 +55,7 @@ def setup():
         os.mkdir(results_dir)
 
 
-def merge_results(result_filename):
-    global results_dir
-
+def merge_results(result_filename, results_dir):
     list_of_results = []
     for filename in os.listdir(results_dir):
         list_of_results.append(pd.read_csv(results_dir + "/" + filename))
@@ -66,4 +64,4 @@ def merge_results(result_filename):
 
 
 if __name__ == '__main__':
-    merge_results('Results.xlsx')
+    merge_results('Results.xlsx', 'Final_Results')

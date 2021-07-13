@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+chess-krvkp.csv,Dropout,1,dropout_rate = 0.143,0.976,0.105,0.938,0.911,0.993,0.994,14.321,0.111
+chess-krvkp.csv,Dropout,2,dropout_rate = 0.129,0.97,0.033,0.969,0.97,0.998,0.998,14.368,0.112
+chess-krvkp.csv,Dropout,3,dropout_rate = 0.071,0.874,0.007,0.931,0.993,0.995,0.994,14.214,0.105
+chess-krvkp.csv,Dropout,4,dropout_rate = 0.06,0.934,0.0,0.966,1.0,1.0,1.0,14.324,0.121
+chess-krvkp.csv,Dropout,5,dropout_rate = 0.019,0.988,0.007,0.991,0.994,1.0,1.0,14.147,0.114
+chess-krvkp.csv,Dropout,6,dropout_rate = 0.118,0.91,0.033,0.938,0.968,0.983,0.989,14.132,0.118
+chess-krvkp.csv,Dropout,7,dropout_rate = 0.071,0.916,0.013,0.95,0.987,0.993,0.994,14.373,0.049
+chess-krvkp.csv,Dropout,8,dropout_rate = 0.129,0.928,0.204,0.865,0.833,0.943,0.95,14.235,0.06
+chess-krvkp.csv,Dropout,9,dropout_rate = 0.087,0.988,0.046,0.972,0.959,0.987,0.987,14.174,0.056
+chess-krvkp.csv,Dropout,10,dropout_rate = 0.06,1.0,0.046,0.978,0.96,1.0,1.0,13.2,0.049

@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+steel-plates.csv,Article,1,"alpha = 0.96, epsilon = 0.277e-3",0.465,0.111,0.431,,0.778,0.499,12.886,0.055
+steel-plates.csv,Article,2,"alpha = 1.04, epsilon = 0.508e-3",0.719,0.058,0.701,0.729,0.935,0.771,12.335,0.057
+steel-plates.csv,Article,3,"alpha = 0.0, epsilon = 0.649e-3",0.665,0.083,0.557,0.72,0.911,0.769,12.413,0.051
+steel-plates.csv,Article,4,"alpha = 1.28, epsilon = 1.207e-3",0.659,0.066,0.665,0.76,0.914,0.692,11.774,0.089
+steel-plates.csv,Article,5,"alpha = 1.16, epsilon = 0.956e-3",0.653,0.056,0.696,0.663,0.904,0.665,11.729,0.087
+steel-plates.csv,Article,6,"alpha = 0.46, epsilon = 0.963e-3",0.695,0.079,0.588,0.68,0.915,0.718,11.806,0.048
+steel-plates.csv,Article,7,"alpha = 1.86, epsilon = 1.757e-3",0.789,0.058,0.716,0.762,0.953,0.827,14.235,0.067
+steel-plates.csv,Article,8,"alpha = 1.76, epsilon = 1.928e-3",0.864,0.039,0.789,0.807,0.974,0.893,13.747,0.059
+steel-plates.csv,Article,9,"alpha = 0.98, epsilon = 0.924e-3",0.754,0.06,0.701,0.761,0.961,0.852,13.778,0.093
+steel-plates.csv,Article,10,"alpha = 0.84, epsilon = 1.955e-3",0.391,0.113,0.428,0.406,0.806,0.487,14.048,0.094

@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+mfeat-karhunen.csv,Article,1,"alpha = 0.78, epsilon = 1.059e-3",0.935,0.007,0.935,0.939,0.999,0.995,15.984,0.062
+mfeat-karhunen.csv,Article,2,"alpha = 0.96, epsilon = 0.277e-3",0.975,0.003,0.975,0.976,1.0,0.997,16.032,0.062
+mfeat-karhunen.csv,Article,3,"alpha = 0.34, epsilon = 1.888e-3",0.985,0.002,0.985,0.986,1.0,0.998,24.546,0.116
+mfeat-karhunen.csv,Article,4,"alpha = 0.0, epsilon = 0.649e-3",0.965,0.004,0.965,0.967,0.995,0.99,22.305,0.093
+mfeat-karhunen.csv,Article,5,"alpha = 0.78, epsilon = 1.059e-3",0.965,0.004,0.965,0.968,0.997,0.985,25.106,0.097
+mfeat-karhunen.csv,Article,6,"alpha = 1.28, epsilon = 1.207e-3",0.965,0.004,0.965,0.966,0.999,0.993,23.074,0.106
+mfeat-karhunen.csv,Article,7,"alpha = 0.02, epsilon = 1.396e-3",0.95,0.006,0.95,0.951,0.998,0.99,16.416,0.052
+mfeat-karhunen.csv,Article,8,"alpha = 0.78, epsilon = 1.059e-3",0.935,0.007,0.935,0.942,0.996,0.982,15.605,0.047
+mfeat-karhunen.csv,Article,9,"alpha = 1.6, epsilon = 1.666e-3",0.97,0.003,0.97,0.971,0.997,0.983,14.799,0.059
+mfeat-karhunen.csv,Article,10,"alpha = 0.06, epsilon = 1.992e-3",0.97,0.003,0.97,0.972,0.997,0.993,14.752,0.047

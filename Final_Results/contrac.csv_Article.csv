@@ -1,0 +1,11 @@
+Dataset Name,Algorithm Name,Cross Validation [1-10],Hyper-Parameters Values,TPR,FPR,Accuracy,Precision,AUC ROC,AUC Precision Recall,Training Time,Inference Time
+contrac.csv,Article,1,"alpha = 1.76, epsilon = 1.928e-3",0.515,0.234,0.541,0.521,0.709,0.544,6.038,0.035
+contrac.csv,Article,2,"alpha = 0.42, epsilon = 1.48e-3",0.477,0.265,0.5,0.488,0.71,0.573,6.033,0.033
+contrac.csv,Article,3,"alpha = 0.94, epsilon = 0.419e-3",0.527,0.226,0.541,0.54,0.716,0.541,5.839,0.034
+contrac.csv,Article,4,"alpha = 1.66, epsilon = 1.293e-3",0.515,0.236,0.558,0.548,0.739,0.592,5.888,0.032
+contrac.csv,Article,5,"alpha = 0.98, epsilon = 0.924e-3",0.555,0.216,0.585,0.578,0.748,0.607,6.836,0.031
+contrac.csv,Article,6,"alpha = 0.0, epsilon = 0.649e-3",0.551,0.234,0.551,0.545,0.748,0.595,6.297,0.03
+contrac.csv,Article,7,"alpha = 1.6, epsilon = 1.666e-3",0.552,0.222,0.565,0.543,0.765,0.642,5.021,0.03
+contrac.csv,Article,8,"alpha = 0.82, epsilon = 1.941e-3",0.517,0.229,0.565,0.527,0.724,0.584,5.05,0.03
+contrac.csv,Article,9,"alpha = 0.0, epsilon = 0.649e-3",0.512,0.238,0.544,0.534,0.706,0.546,5.033,0.03
+contrac.csv,Article,10,"alpha = 1.76, epsilon = 1.928e-3",0.565,0.214,0.585,0.592,0.738,0.606,5.017,0.031

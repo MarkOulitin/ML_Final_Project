@@ -51,3 +51,7 @@ The `Results.xlsx` file contains the metrics and performance of all algorithm ov
 
 The `Posthoc_Results.xlsx` file contains the matrix of post hoc test that compares each pair of algorithms.
 In our case, post hoc test was executed with TPR metric.
+
+The `Ranks_of_algorithm.xlsx` file contains the rank of each algorithm by friedman test.
+In our case, post hoc test was executed with TPR metric.
+

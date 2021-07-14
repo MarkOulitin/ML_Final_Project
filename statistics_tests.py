@@ -1,8 +1,11 @@
 import numpy as np
+import pandas
 import pandas as pd
 import scikit_posthocs
 import scipy.stats
 import utils
+from functools import cmp_to_key
+from pprint import pprint
 
 CONFIDENCE_ALPHA = 0.05
 
@@ -26,6 +29,7 @@ def statistic_test(df, metric, alpha):
     :return: The results of the post-hoc test if significant, otherwise None.
     """
     algorithms_measurements_pairs_list = split_df_to_measurements(df, metric)
+    ranks = calculate_ranks_per_algorithm(algorithms_measurements_pairs_list)
     measurements = list(map(lambda p: p[1], algorithms_measurements_pairs_list))
     statistic, pvalue = scipy.stats.friedmanchisquare(*measurements)
     posthoc_results = None
@@ -40,7 +44,39 @@ def statistic_test(df, metric, alpha):
             columns=algorithm_indices_to_dict(algorithms_measurements_pairs_list, posthoc_results.columns)
         )
 
-    return pvalue, posthoc_results
+    return pvalue, posthoc_results, ranks
+
+
+def calculate_ranks_per_algorithm(measurements_lists):
+    """"
+    Calculates ranks of each algorithm according to friedman test
+    """
+    def compare(item1, item2):
+        return item1[1] - item2[1]
+
+    ranks_dict = dict()
+    # prepare container for rank of each algorithm per dataset
+    for (algo_name, _) in measurements_lists:
+        ranks_dict.update({algo_name: []})
+    # for each dataset, compare the metric of each algorithm and assign a rank for each algorithm by his performance
+    for index, _ in enumerate(measurements_lists[0][1]):
+        # fetch metric for each algorithm
+        row = [(0, measurements_lists[0][1][index]), (1, measurements_lists[1][1][index]),
+               (2, measurements_lists[2][1][index])]
+        row = sorted(row, key=cmp_to_key(compare))
+        # assign rank for each algorithm, when 1 is the algorithm with worst metric and 3 is the best metric
+        for i, (algo_number, _) in enumerate(row):
+            ranks_dict[measurements_lists[algo_number][0]].append(i)
+
+    # container for holding results for each algorithm
+    ranks = dict()
+    # for each algorithm calculate his average rank
+    for (algo_name, _) in measurements_lists:
+        ranks.update({
+            algo_name:
+                sum(ranks_dict[algo_name]) / len(ranks_dict[algo_name])
+        })
+    return pd.DataFrame.from_dict(ranks, orient='index')
 
 
 def algorithm_indices_to_dict(algorithms_measurements_pairs_list, indices):
@@ -105,7 +141,7 @@ def split_df_to_measurements(df, metric):
     return algorithms_measurements_pairs_list
 
 
-def run_statistic_test_from_results(results_file_name, metric, alpha, results_dir, posthoc_results_file_name):
+def run_statistic_test_from_results(results_file_name, metric, alpha, results_dir, posthoc_results_file_name, ranks_filename):
     """
     Runs the statistics tests using the raw results gathered from the evaluation stage
     of the project.
@@ -119,14 +155,16 @@ def run_statistic_test_from_results(results_file_name, metric, alpha, results_di
     """
     utils.merge_results(results_file_name, results_dir=results_dir)
     df = pd.read_excel(results_file_name)
-    pvalue, posthoc_results = statistic_test(df, metric, alpha)
+    pvalue, posthoc_results, ranks = statistic_test(df, metric, alpha)
     if posthoc_results is None:
         print(f'Results are not significant alpha={alpha}, pvalue={pvalue}')
     else:
         print(f'Results are significant alpha={alpha}, pvalue={pvalue}')
         print(posthoc_results)
+        print(f'Ranks for each algorithm')
+        print(ranks)
         posthoc_results.to_excel(posthoc_results_file_name)
-
+        ranks.to_excel(ranks_filename, header=False)
 
 if __name__ == '__main__':
     run_statistic_test_from_results(
@@ -134,5 +172,6 @@ if __name__ == '__main__':
         metric='TPR',
         alpha=0.05,
         results_dir='Final_Results',
-        posthoc_results_file_name='Posthoc_Results.xlsx'
+        posthoc_results_file_name='Posthoc_Results.xlsx',
+        ranks_filename='Ranks_of_algorithm.xlsx'
     )

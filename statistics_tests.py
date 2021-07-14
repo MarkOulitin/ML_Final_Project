@@ -32,6 +32,9 @@ def statistic_test(df, metric, alpha):
     if pvalue < alpha:
         posthoc_measurements = measurements_to_posthoc(measurements)
         posthoc_results = scikit_posthocs.posthoc_nemenyi_friedman(posthoc_measurements)
+
+        # rename the rows and columns to the names of the algorithm
+        # rather than it being numbers.
         posthoc_results = posthoc_results.rename(
             index=algorithm_indices_to_dict(algorithms_measurements_pairs_list, posthoc_results.index),
             columns=algorithm_indices_to_dict(algorithms_measurements_pairs_list, posthoc_results.columns)
@@ -41,6 +44,20 @@ def statistic_test(df, metric, alpha):
 
 
 def algorithm_indices_to_dict(algorithms_measurements_pairs_list, indices):
+    """
+    Converts the indices of the algorithms to a dictionary mapping
+    each algorithm's index with its name.
+    The result dictionary can be used to rename a pd.DataFrame
+    :param algorithms_measurements_pairs_list: The list of pairs of the algorithm and its measurements.
+    The measurements are ignored by this function
+    :param indices: The indices of the algorithms within the algorithms input list
+    :return: dictionary mapping each algorithm's index with its name
+
+    Example:
+    list: [('Article', [...]), ('Dropout', [...]), ('OUR', [...])]
+    indices: [0, 1, 2]
+    --> result: {0: 'Article', 1: 'Dropout', 2: 'OUR'}
+    """
     return dict(map(lambda p: (p, algorithms_measurements_pairs_list[p][0]), indices))
 
 
@@ -59,9 +76,9 @@ def measurements_to_posthoc(measurements):
 
 def split_df_to_measurements(df, metric):
     """
-    Splits the dataframe to lists, a list per algorithm, of the mean
-    of the outer cross validation performance of the chosen metric
-    of each dataset for that algorithm.
+    Splits the dataframe to lists, a list per algorithm, of pairs of
+    the algorithm name and the mean of the outer cross validation performance
+    of the chosen metric for that algorithm, per datatset.
     :param df: The dataframe to extract information from
     :param metric: The chosen metric to take the mean of and return as measurement for the statistic test
     :return:
@@ -89,6 +106,17 @@ def split_df_to_measurements(df, metric):
 
 
 def run_statistic_test_from_results(results_file_name, metric, alpha, results_dir, posthoc_results_file_name):
+    """
+    Runs the statistics tests using the raw results gathered from the evaluation stage
+    of the project.
+    :param results_file_name: The file name to save the merged results into
+    :param metric: The metric to use for the statistics tests (e.g. TPR, Accuracy).
+    It must be present as a column name in the results document table
+    :param alpha: The significance level of the statistics tests
+    :param results_dir: The directory name to read the raw results from
+    :param posthoc_results_file_name: The file name to save the posthoc results into.
+    :return: None
+    """
     utils.merge_results(results_file_name, results_dir=results_dir)
     df = pd.read_excel(results_file_name)
     pvalue, posthoc_results = statistic_test(df, metric, alpha)
